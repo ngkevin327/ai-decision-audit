@@ -12,7 +12,9 @@
     "test": "turbo test",
     "lint": "turbo lint",
     "typecheck": "turbo typecheck",
-    "prepare": "husky"
+    "prepare": "husky",
+    "db:migrate": "pnpm --filter @audit-trail/api exec prisma migrate deploy",
+    "db:generate": "pnpm --filter @audit-trail/api exec prisma generate"
   },
   "devDependencies": {
     "@eslint/js": "^9.17.0",
