@@ -18,6 +18,8 @@
     "reflect-metadata": "^0.2.2",
     "@aws-sdk/client-s3": "^3.716.0",
     "@aws-sdk/s3-request-presigner": "^3.716.0",
+    "bullmq": "^5.34.5",
+    "ioredis": "^5.4.2",
     "minio": "^8.0.4",
     "zod": "^3.24.1",
     "rxjs": "^7.8.1"
