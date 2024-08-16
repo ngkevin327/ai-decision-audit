@@ -1,8 +1,13 @@
+import 'reflect-metadata';
+import { NestFactory } from '@nestjs/core';
+import { WorkerModule } from './worker.module';
+
 async function bootstrap() {
-  console.log('[worker] process started', {
-    pid: process.pid,
-    nodeEnv: process.env.NODE_ENV ?? 'development',
+  const app = await NestFactory.createApplicationContext(WorkerModule, {
+    logger: ['log', 'error', 'warn'],
   });
+  await app.init();
+  console.log('[worker] bootstrap complete', { pid: process.pid });
 }
 
 bootstrap().catch((err) => {
