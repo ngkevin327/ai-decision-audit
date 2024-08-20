@@ -1,0 +1,3 @@
+aws_region          = "us-east-1"
+environment         = "staging"
+payload_bucket_name = "audit-trail-staging-payloads-YOUR_ACCOUNT_ID"
