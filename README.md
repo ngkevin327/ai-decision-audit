@@ -28,15 +28,36 @@ Event flow: SDK/proxy ingest → queue → indexer → Postgres metadata + objec
 
 ## Local development
 
+1. Copy environment template: `cp .env.example .env`
+2. Start dependencies: `docker compose up -d`
+3. Install and migrate:
+
 ```bash
 pnpm install
-pnpm dev
+pnpm db:generate
+pnpm db:migrate
 ```
 
-API health: `http://localhost:3000/health`  
-Web UI: `http://localhost:5173`
+4. Run all apps: `pnpm dev`
 
-Detailed setup (Docker Compose, env vars) is documented in later milestones.
+| Service | Endpoint |
+|---------|----------|
+| API health | http://localhost:3000/health |
+| Web UI | http://localhost:5173 |
+
+See [docs/runbooks/local-dev.md](./docs/runbooks/local-dev.md) for troubleshooting and worker startup.
+
+## Environment variables
+
+| Variable | Required | Description |
+|----------|----------|-------------|
+| `DATABASE_URL` | Yes | PostgreSQL connection string |
+| `REDIS_URL` | Yes | Redis URL for BullMQ |
+| `STORAGE_DRIVER` | No | `minio` (default) or `s3` |
+| `MINIO_*` | When local | MinIO endpoint and credentials |
+| `AWS_REGION`, `S3_BUCKET` | When `s3` | Staging/production blob storage |
+
+Full list: [.env.example](./.env.example)
 
 ## Build and test
 
@@ -46,6 +67,16 @@ pnpm lint
 pnpm test
 ```
 
+Integration tests use Postgres and Redis (see `.github/workflows/integration.yml`).
+
 ## Deployment
 
-Staging infrastructure is defined under `infra/terraform`. Production rollout uses the same modules with environment-specific variables and remote state (S3 + DynamoDB lock table).
+Staging infrastructure is defined under `infra/terraform`. Configure remote state (S3 + DynamoDB lock), then:
+
+```bash
+cd infra/environments/staging
+terraform init
+terraform plan -var-file=terraform.tfvars
+```
+
+Production uses the same modules with environment-specific variables and stricter network controls.
