@@ -6,3 +6,154 @@ datasource db {
   provider = "postgresql"
   url      = env("DATABASE_URL")
 }
+
+enum PlanTier {
+  starter
+  growth
+  enterprise
+}
+
+enum Role {
+  org_admin
+  developer
+  auditor
+  viewer
+}
+
+enum EnvironmentName {
+  staging
+  production
+}
+
+model Organization {
+  id        String   @id @default(uuid()) @db.Uuid
+  name      String
+  slug      String   @unique
+  planTier  PlanTier @default(starter) @map("plan_tier")
+  createdAt DateTime @default(now()) @map("created_at")
+  updatedAt DateTime @updatedAt @map("updated_at")
+
+  memberships   Membership[]
+  projects      Project[]
+  apiKeys       ApiKey[]
+  metaAuditLogs MetaAuditLog[]
+
+  @@map("organizations")
+}
+
+model User {
+  id          String   @id @default(uuid()) @db.Uuid
+  externalId  String   @unique @map("external_id")
+  email       String   @unique
+  displayName String?  @map("display_name")
+  createdAt   DateTime @default(now()) @map("created_at")
+  updatedAt   DateTime @updatedAt @map("updated_at")
+
+  memberships     Membership[]
+  roleAssignments RoleAssignment[]
+  apiKeysCreated  ApiKey[]         @relation("ApiKeyCreator")
+  metaAuditLogs   MetaAuditLog[]   @relation("MetaAuditActor")
+
+  @@map("users")
+}
+
+model Membership {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  userId         String    @map("user_id") @db.Uuid
+  role           Role      @default(viewer)
+  invitedAt      DateTime? @map("invited_at")
+  acceptedAt     DateTime? @map("accepted_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+  updatedAt      DateTime  @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  user         User         @relation(fields: [userId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId])
+  @@map("memberships")
+}
+
+model Project {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  name           String
+  slug           String
+  createdAt      DateTime @default(now()) @map("created_at")
+  updatedAt      DateTime @updatedAt @map("updated_at")
+
+  organization    Organization     @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  environments    Environment[]
+  apiKeys         ApiKey[]
+  roleAssignments RoleAssignment[]
+
+  @@unique([organizationId, slug])
+  @@map("projects")
+}
+
+model Environment {
+  id        String          @id @default(uuid()) @db.Uuid
+  projectId String          @map("project_id") @db.Uuid
+  name      EnvironmentName
+  createdAt DateTime        @default(now()) @map("created_at")
+
+  project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  apiKeys ApiKey[]
+
+  @@unique([projectId, name])
+  @@map("environments")
+}
+
+model ApiKey {
+  id             String    @id @default(uuid()) @db.Uuid
+  organizationId String    @map("organization_id") @db.Uuid
+  projectId      String    @map("project_id") @db.Uuid
+  environmentId  String?   @map("environment_id") @db.Uuid
+  name           String
+  keyPrefix      String    @map("key_prefix")
+  keyHash        String    @map("key_hash")
+  scopes         String[]
+  createdById    String?   @map("created_by_id") @db.Uuid
+  revokedAt      DateTime? @map("revoked_at")
+  createdAt      DateTime  @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project      Project      @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  environment  Environment? @relation(fields: [environmentId], references: [id], onDelete: SetNull)
+  createdBy    User?        @relation("ApiKeyCreator", fields: [createdById], references: [id], onDelete: SetNull)
+
+  @@index([keyPrefix])
+  @@map("api_keys")
+}
+
+model RoleAssignment {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  userId         String   @map("user_id") @db.Uuid
+  projectId      String?  @map("project_id") @db.Uuid
+  role           Role
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
+  project Project? @relation(fields: [projectId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, userId, projectId])
+  @@map("role_assignments")
+}
+
+model MetaAuditLog {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  actorUserId    String?  @map("actor_user_id") @db.Uuid
+  action         String
+  resourceType   String   @map("resource_type")
+  resourceId     String?  @map("resource_id") @db.Uuid
+  metadata       Json?
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  actor        User?        @relation("MetaAuditActor", fields: [actorUserId], references: [id], onDelete: SetNull)
+
+  @@index([organizationId, createdAt])
+  @@map("meta_audit_logs")
+}
