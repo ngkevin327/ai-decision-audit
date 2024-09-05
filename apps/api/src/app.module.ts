@@ -1,4 +1,7 @@
-import { Module } from '@nestjs/common';
+import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
+import { AuthModule } from './auth/auth.module';
+import { CommonModule } from './common/common.module';
+import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { AppConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
 import { OrganizationsModule } from './organizations/organizations.module';
@@ -10,6 +13,8 @@ import { StorageModule } from './storage/storage.module';
 @Module({
   imports: [
     AppConfigModule,
+    CommonModule,
+    AuthModule,
     PrismaModule,
     StorageModule,
     QueueModule,
@@ -18,4 +23,8 @@ import { StorageModule } from './storage/storage.module';
     HealthModule,
   ],
 })
-export class AppModule {}
+export class AppModule implements NestModule {
+  configure(consumer: MiddlewareConsumer) {
+    consumer.apply(TenantContextMiddleware).forRoutes('*');
+  }
+}

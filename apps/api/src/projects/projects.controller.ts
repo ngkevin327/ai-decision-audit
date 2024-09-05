@@ -1,8 +1,10 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
+import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsService } from './projects.service';
 
 @Controller('organizations/:orgId/projects')
+@UseGuards(TenantGuard)
 export class ProjectsController {
   constructor(private readonly projects: ProjectsService) {}
 

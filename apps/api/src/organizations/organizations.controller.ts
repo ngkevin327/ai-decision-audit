@@ -1,15 +1,11 @@
-import { Body, Controller, Get, Param, Post } from '@nestjs/common';
-import { CreateOrganizationDto } from './dto/create-organization.dto';
+import { Controller, Get, Param, UseGuards } from '@nestjs/common';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { OrganizationsService } from './organizations.service';
 
 @Controller('organizations')
+@UseGuards(TenantGuard)
 export class OrganizationsController {
   constructor(private readonly organizations: OrganizationsService) {}
-
-  @Post()
-  create(@Body() dto: CreateOrganizationDto) {
-    return this.organizations.create(dto);
-  }
 
   @Get(':orgId')
   findOne(@Param('orgId') orgId: string) {
