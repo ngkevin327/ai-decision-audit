@@ -4,6 +4,7 @@ import { CommonModule } from './common/common.module';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { AppConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
+import { ApiKeysModule } from './api-keys/api-keys.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -20,6 +21,7 @@ import { StorageModule } from './storage/storage.module';
     QueueModule,
     OrganizationsModule,
     ProjectsModule,
+    ApiKeysModule,
     HealthModule,
   ],
 })

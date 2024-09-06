@@ -1,12 +1,16 @@
-import { Injectable, UnauthorizedException } from '@nestjs/common';
+import { Inject, Injectable, UnauthorizedException, forwardRef } from '@nestjs/common';
 import { Request } from 'express';
-import { createHash } from 'crypto';
-import { PrismaService } from '../prisma/prisma.service';
+import { ApiKeysService } from '../api-keys/api-keys.service';
 import { TenantContext } from '../common/tenant/tenant-context';
+import { PrismaService } from '../prisma/prisma.service';
 
 @Injectable()
 export class AuthResolverService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(
+    private readonly prisma: PrismaService,
+    @Inject(forwardRef(() => ApiKeysService))
+    private readonly apiKeys: ApiKeysService,
+  ) {}
 
   async resolve(req: Request): Promise<TenantContext> {
     const apiKeyHeader = req.header('x-api-key') ?? req.header('authorization');
@@ -25,12 +29,7 @@ export class AuthResolverService {
   }
 
   private async resolveApiKey(rawKey: string): Promise<TenantContext> {
-    const prefix = rawKey.slice(0, 16);
-    const hash = this.hashKey(rawKey);
-
-    const record = await this.prisma.apiKey.findFirst({
-      where: { keyPrefix: prefix, keyHash: hash, revokedAt: null },
-    });
+    const record = await this.apiKeys.validate(rawKey);
 
     if (!record) {
       throw new UnauthorizedException('Invalid API key');
@@ -74,10 +73,6 @@ export class AuthResolverService {
       role: membership.role,
       scopes: this.roleToScopes(membership.role),
     };
-  }
-
-  private hashKey(rawKey: string): string {
-    return createHash('sha256').update(rawKey).digest('hex');
   }
 
   private roleToScopes(role: string): string[] {
