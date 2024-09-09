@@ -3,6 +3,7 @@ import { Request } from 'express';
 import { ApiKeysService } from '../api-keys/api-keys.service';
 import { TenantContext } from '../common/tenant/tenant-context';
 import { PrismaService } from '../prisma/prisma.service';
+import { roleToScopes } from './permission.constants';
 
 @Injectable()
 export class AuthResolverService {
@@ -71,22 +72,7 @@ export class AuthResolverService {
       organizationId,
       userId: user.id,
       role: membership.role,
-      scopes: this.roleToScopes(membership.role),
+      scopes: roleToScopes(membership.role),
     };
-  }
-
-  private roleToScopes(role: string): string[] {
-    switch (role) {
-      case 'org_admin':
-        return ['trace:ingest', 'trace:read', 'export:create', 'admin'];
-      case 'developer':
-        return ['trace:ingest', 'trace:read'];
-      case 'auditor':
-        return ['trace:read', 'export:create'];
-      case 'viewer':
-        return ['trace:read'];
-      default:
-        return [];
-    }
   }
 }
