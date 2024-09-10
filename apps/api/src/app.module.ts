@@ -5,6 +5,8 @@ import { TenantContextMiddleware } from './common/middleware/tenant-context.midd
 import { AppConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
+import { MembershipsModule } from './memberships/memberships.module';
+import { MetaAuditModule } from './meta-audit/meta-audit.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PrismaModule } from './prisma/prisma.module';
@@ -22,6 +24,8 @@ import { StorageModule } from './storage/storage.module';
     OrganizationsModule,
     ProjectsModule,
     ApiKeysModule,
+    MembershipsModule,
+    MetaAuditModule,
     HealthModule,
   ],
 })
