@@ -1,4 +1,6 @@
 import { Link, Route, Routes } from 'react-router-dom';
+import { ProtectedRoute } from './auth/ProtectedRoute';
+import { SignInPage } from './pages/SignInPage';
 
 function HomePage() {
   return (
@@ -15,11 +17,21 @@ export function App() {
       <header>
         <nav>
           <Link to="/">Traces</Link>
+          <Link to="/settings/projects">Projects</Link>
+          <Link to="/settings/api-keys">API Keys</Link>
         </nav>
       </header>
       <main>
         <Routes>
-          <Route path="/" element={<HomePage />} />
+          <Route path="/sign-in" element={<SignInPage />} />
+          <Route
+            path="/"
+            element={
+              <ProtectedRoute>
+                <HomePage />
+              </ProtectedRoute>
+            }
+          />
         </Routes>
       </main>
     </div>
