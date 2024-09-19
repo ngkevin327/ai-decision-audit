@@ -1,6 +1,8 @@
 import { Link, Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { SignInPage } from './pages/SignInPage';
+import { ApiKeysPage } from './pages/settings/ApiKeysPage';
+import { ProjectsPage } from './pages/settings/ProjectsPage';
 
 function HomePage() {
   return (
@@ -32,6 +34,8 @@ export function App() {
               </ProtectedRoute>
             }
           />
+          <Route path="/settings/projects" element={<ProjectsPage />} />
+          <Route path="/settings/api-keys" element={<ApiKeysPage />} />
         </Routes>
       </main>
     </div>
