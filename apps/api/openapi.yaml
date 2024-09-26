@@ -1,0 +1,146 @@
+openapi: 3.1.0
+info:
+  title: AI Audit Trail Control Plane API
+  version: 0.1.0
+  description: Organizations, projects, API keys, and membership management.
+
+servers:
+  - url: http://localhost:3000
+
+paths:
+  /public/organizations:
+    post:
+      summary: Create organization (onboarding)
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateOrganization'
+      responses:
+        '201':
+          description: Organization created
+
+  /organizations/{orgId}/projects:
+    get:
+      summary: List projects
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Project list
+    post:
+      summary: Create project
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateProject'
+      responses:
+        '201':
+          description: Project created
+
+  /organizations/{orgId}/api-keys:
+    get:
+      summary: List API keys
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - name: projectId
+          in: query
+          schema:
+            type: string
+            format: uuid
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: API key list
+    post:
+      summary: Issue API key
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      requestBody:
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateApiKey'
+      responses:
+        '201':
+          description: API key issued (plaintext returned once)
+
+  /organizations/{orgId}/members/invite:
+    post:
+      summary: Invite member
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      responses:
+        '201':
+          description: Invitation created
+
+components:
+  securitySchemes:
+    sessionAuth:
+      type: apiKey
+      in: header
+      name: X-User-Id
+    apiKeyAuth:
+      type: apiKey
+      in: header
+      name: X-Api-Key
+
+  parameters:
+    OrgId:
+      name: orgId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+
+  schemas:
+    CreateOrganization:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+          pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+
+    CreateProject:
+      type: object
+      required: [name, slug]
+      properties:
+        name:
+          type: string
+        slug:
+          type: string
+
+    CreateApiKey:
+      type: object
+      required: [name, projectId, scopes]
+      properties:
+        name:
+          type: string
+        projectId:
+          type: string
+          format: uuid
+        environmentId:
+          type: string
+          format: uuid
+        scopes:
+          type: array
+          items:
+            type: string
+            enum: [trace:ingest, trace:read, export:create]
