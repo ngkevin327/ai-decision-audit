@@ -2,12 +2,13 @@ import { Body, Controller, Get, Param, Patch, Post, UseGuards } from '@nestjs/co
 import { Roles } from '../auth/permissions.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { TenantScopeGuard } from '../common/guards/tenant-scope.guard';
 import { InviteMemberDto } from './dto/invite-member.dto';
 import { UpdateRoleDto } from './dto/update-role.dto';
 import { MembershipsService } from './memberships.service';
 
 @Controller('organizations/:orgId/members')
-@UseGuards(TenantGuard, RolesGuard)
+@UseGuards(TenantGuard, TenantScopeGuard, RolesGuard)
 export class MembershipsController {
   constructor(private readonly memberships: MembershipsService) {}
 

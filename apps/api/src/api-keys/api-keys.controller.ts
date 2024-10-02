@@ -2,11 +2,12 @@ import { Body, Controller, Delete, Get, Param, Post, Query, UseGuards } from '@n
 import { Roles } from '../auth/permissions.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { TenantScopeGuard } from '../common/guards/tenant-scope.guard';
 import { ApiKeysService } from './api-keys.service';
 import { CreateApiKeyDto } from './dto/create-api-key.dto';
 
 @Controller('organizations/:orgId/api-keys')
-@UseGuards(TenantGuard, RolesGuard)
+@UseGuards(TenantGuard, TenantScopeGuard, RolesGuard)
 export class ApiKeysController {
   constructor(private readonly apiKeys: ApiKeysService) {}
 

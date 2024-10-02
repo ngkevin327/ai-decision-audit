@@ -2,11 +2,12 @@ import { Body, Controller, Get, Param, Post, UseGuards } from '@nestjs/common';
 import { Roles } from '../auth/permissions.decorator';
 import { RolesGuard } from '../auth/roles.guard';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { TenantScopeGuard } from '../common/guards/tenant-scope.guard';
 import { CreateProjectDto } from './dto/create-project.dto';
 import { ProjectsService } from './projects.service';
 
 @Controller('organizations/:orgId/projects')
-@UseGuards(TenantGuard, RolesGuard)
+@UseGuards(TenantGuard, TenantScopeGuard, RolesGuard)
 export class ProjectsController {
   constructor(private readonly projects: ProjectsService) {}
 
