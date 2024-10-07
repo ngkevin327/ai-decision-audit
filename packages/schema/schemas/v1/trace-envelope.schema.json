@@ -1,0 +1,90 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audit-trail.dev/schemas/v1/trace-envelope.schema.json",
+  "title": "TraceIngestEnvelope",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "schema_version",
+    "trace_id",
+    "workflow_name",
+    "actor",
+    "permission_snapshot",
+    "started_at",
+    "spans"
+  ],
+  "properties": {
+    "schema_version": {
+      "type": "string",
+      "const": "1.0"
+    },
+    "trace_id": {
+      "type": "string",
+      "minLength": 8,
+      "maxLength": 128,
+      "pattern": "^tr_[A-Za-z0-9_-]+$"
+    },
+    "workflow_name": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 256
+    },
+    "environment": {
+      "type": "string",
+      "enum": ["staging", "production"]
+    },
+    "actor": {
+      "$ref": "actor.schema.json"
+    },
+    "permission_snapshot": {
+      "$ref": "permission-snapshot.schema.json"
+    },
+    "started_at": {
+      "type": "string",
+      "format": "date-time"
+    },
+    "status": {
+      "type": "string",
+      "enum": ["in_progress", "completed", "failed", "cancelled"]
+    },
+    "tags": {
+      "type": "object",
+      "additionalProperties": {
+        "type": "string"
+      }
+    },
+    "spans": {
+      "type": "array",
+      "minItems": 1,
+      "items": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["span_id", "name", "events"],
+        "properties": {
+          "span_id": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 128
+          },
+          "parent_span_id": {
+            "type": "string",
+            "minLength": 4,
+            "maxLength": 128
+          },
+          "name": {
+            "type": "string",
+            "minLength": 1,
+            "maxLength": 256
+          },
+          "events": {
+            "type": "array",
+            "minItems": 1,
+            "items": {
+              "$ref": "event.schema.json"
+            }
+          }
+        }
+      }
+    }
+  }
+}
