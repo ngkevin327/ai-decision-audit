@@ -1,0 +1,36 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://audit-trail.dev/schemas/v1/permission-snapshot.schema.json",
+  "title": "PermissionSnapshot",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["policy_version", "roles", "scopes"],
+  "properties": {
+    "policy_version": {
+      "type": "string",
+      "minLength": 1,
+      "maxLength": 64
+    },
+    "roles": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1
+    },
+    "scopes": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 }
+    },
+    "resource_ids": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "denied_resources": {
+      "type": "array",
+      "items": { "type": "string" }
+    },
+    "captured_at": {
+      "type": "string",
+      "format": "date-time"
+    }
+  }
+}
