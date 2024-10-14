@@ -25,6 +25,22 @@ enum EnvironmentName {
   production
 }
 
+enum TraceStatus {
+  in_progress
+  completed
+  failed
+  cancelled
+}
+
+enum EventType {
+  prompt
+  completion
+  tool_call
+  retrieval
+  approval
+  custom
+}
+
 model Organization {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
@@ -37,6 +53,7 @@ model Organization {
   projects      Project[]
   apiKeys       ApiKey[]
   metaAuditLogs MetaAuditLog[]
+  traces        Trace[]
 
   @@map("organizations")
 }
@@ -86,6 +103,7 @@ model Project {
   environments    Environment[]
   apiKeys         ApiKey[]
   roleAssignments RoleAssignment[]
+  traces          Trace[]
 
   @@unique([organizationId, slug])
   @@map("projects")
@@ -99,6 +117,7 @@ model Environment {
 
   project Project  @relation(fields: [projectId], references: [id], onDelete: Cascade)
   apiKeys ApiKey[]
+  traces  Trace[]
 
   @@unique([projectId, name])
   @@map("environments")
@@ -156,4 +175,82 @@ model MetaAuditLog {
 
   @@index([organizationId, createdAt])
   @@map("meta_audit_logs")
+}
+
+model Trace {
+  id              String      @id @default(uuid()) @db.Uuid
+  organizationId  String      @map("organization_id") @db.Uuid
+  projectId       String      @map("project_id") @db.Uuid
+  environmentId   String?     @map("environment_id") @db.Uuid
+  externalTraceId String      @map("external_trace_id")
+  workflowName    String      @map("workflow_name")
+  status          TraceStatus @default(in_progress)
+  startedAt       DateTime    @map("started_at")
+  completedAt     DateTime?   @map("completed_at")
+  chainHash       String?     @map("chain_hash")
+  chainVersion    Int         @default(1) @map("chain_version")
+  actor           Json
+  tags            Json?
+  createdAt       DateTime    @default(now()) @map("created_at")
+
+  organization        Organization        @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+  project             Project             @relation(fields: [projectId], references: [id], onDelete: Cascade)
+  environment         Environment?        @relation(fields: [environmentId], references: [id], onDelete: SetNull)
+  permissionSnapshot  PermissionSnapshot?
+  spans               Span[]
+
+  @@unique([organizationId, externalTraceId])
+  @@index([organizationId, projectId, startedAt])
+  @@map("traces")
+}
+
+model PermissionSnapshot {
+  id               String   @id @default(uuid()) @db.Uuid
+  traceId          String   @unique @map("trace_id") @db.Uuid
+  policyVersion    String   @map("policy_version")
+  roles            String[]
+  scopes           String[]
+  resourceIds      String[] @map("resource_ids")
+  deniedResources  String[] @map("denied_resources")
+  capturedAt       DateTime @map("captured_at")
+  createdAt        DateTime @default(now()) @map("created_at")
+
+  trace Trace @relation(fields: [traceId], references: [id], onDelete: Cascade)
+
+  @@map("permission_snapshots")
+}
+
+model Span {
+  id             String   @id @default(uuid()) @db.Uuid
+  traceId        String   @map("trace_id") @db.Uuid
+  externalSpanId String   @map("external_span_id")
+  parentSpanId   String?  @map("parent_span_id")
+  name           String
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  trace  Trace   @relation(fields: [traceId], references: [id], onDelete: Cascade)
+  events Event[]
+
+  @@unique([traceId, externalSpanId])
+  @@map("spans")
+}
+
+model Event {
+  id              String    @id @default(uuid()) @db.Uuid
+  spanId          String    @map("span_id") @db.Uuid
+  organizationId  String    @map("organization_id") @db.Uuid
+  externalEventId String    @map("external_event_id")
+  type            EventType
+  occurredAt      DateTime  @map("occurred_at")
+  sequenceIndex   Int       @map("sequence_index")
+  contentHash     String    @map("content_hash")
+  chainHash       String    @map("chain_hash")
+  payloadRef      String?   @map("payload_ref")
+  createdAt       DateTime  @default(now()) @map("created_at")
+
+  span Span @relation(fields: [spanId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, externalEventId])
+  @@index([spanId, sequenceIndex])
+  @@map("events")
 }
