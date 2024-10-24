@@ -35,7 +35,7 @@ export class SchemaValidator {
   private readonly validateEventFn: ValidateFunction<TraceEvent>;
 
   constructor() {
-    this.ajv = new Ajv({ allErrors: true, strict: false });
+    this.ajv = new Ajv({ allErrors: true, strict: false, validateSchema: false });
     addFormats(this.ajv);
 
     this.ajv.addSchema(loadSchema('actor.schema.json'));
@@ -52,8 +52,8 @@ export class SchemaValidator {
       throw new Error('Failed to compile JSON Schema validators');
     }
 
-    this.validateEnvelopeFn = envelope;
-    this.validateEventFn = event;
+    this.validateEnvelopeFn = envelope as ValidateFunction<TraceIngestEnvelope>;
+    this.validateEventFn = event as ValidateFunction<TraceEvent>;
   }
 
   validateTraceEnvelope(payload: unknown): ValidationResult<TraceIngestEnvelope> {

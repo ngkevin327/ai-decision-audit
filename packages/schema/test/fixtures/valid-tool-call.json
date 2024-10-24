@@ -1,0 +1,12 @@
+{
+  "schema_version": "1.0",
+  "event_id": "evt_tool_001",
+  "type": "tool_call",
+  "occurred_at": "2026-05-19T14:32:01Z",
+  "span_id": "span_root",
+  "payload": {
+    "tool_name": "create_refund",
+    "input": { "order_id": "ord_123", "amount": 50 },
+    "output": { "status": "approved", "refund_id": "rf_456" }
+  }
+}

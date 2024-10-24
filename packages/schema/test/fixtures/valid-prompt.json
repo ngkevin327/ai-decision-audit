@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "event_id": "evt_prompt_001",
+  "type": "prompt",
+  "occurred_at": "2026-05-19T14:31:58Z",
+  "span_id": "span_root",
+  "payload": {
+    "messages": [{ "role": "user", "content": "Approve refund for order ord_123" }],
+    "model": "gpt-4.1"
+  }
+}

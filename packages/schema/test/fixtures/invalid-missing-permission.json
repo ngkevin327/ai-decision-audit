@@ -1,0 +1,11 @@
+{
+  "schema_version": "1.0",
+  "trace_id": "tr_bad_001",
+  "workflow_name": "support_refund",
+  "actor": {
+    "actor_id": "user_42",
+    "actor_type": "user"
+  },
+  "started_at": "2026-05-19T14:31:55Z",
+  "spans": []
+}
