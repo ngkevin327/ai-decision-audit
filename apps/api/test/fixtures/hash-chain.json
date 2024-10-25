@@ -1,0 +1,31 @@
+{
+  "events": [
+    {
+      "schema_version": "1.0",
+      "event_id": "evt_a",
+      "type": "prompt",
+      "occurred_at": "2026-05-19T14:00:00Z",
+      "span_id": "span_1",
+      "payload": { "messages": [{ "role": "user", "content": "hi" }] }
+    },
+    {
+      "schema_version": "1.0",
+      "event_id": "evt_b",
+      "type": "completion",
+      "occurred_at": "2026-05-19T14:00:01Z",
+      "span_id": "span_1",
+      "payload": { "content": "hello" }
+    }
+  ],
+  "expected": {
+    "contentHashes": [
+      "a2f3b6c94d6c6e94b4950df69e3cfb4d919bc5eda6e9185eb018c8056bd775e1",
+      "b551530904725b6a0a09ae0aa85774dd2ad19139f34fc8677e44faa17cd12b86"
+    ],
+    "chainHashes": [
+      "9a8fe05aceb854f4ac927fc7b6d2d100d8ed89ce8b1d10a7800806f21276e957",
+      "20e16e4532c2003864d185750e258dfdfd794e60ab0dd670641083baa4f3d879"
+    ],
+    "finalChainHash": "20e16e4532c2003864d185750e258dfdfd794e60ab0dd670641083baa4f3d879"
+  }
+}
