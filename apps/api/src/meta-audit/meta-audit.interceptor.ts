@@ -79,6 +79,12 @@ export class MetaAuditInterceptor implements NestInterceptor {
     if (body && typeof body === 'object' && 'id' in body) {
       return String((body as { id: string }).id);
     }
-    return req.params.keyId ?? req.params.membershipId;
+    const keyId = req.params.keyId;
+    const membershipId = req.params.membershipId;
+    return typeof keyId === 'string'
+      ? keyId
+      : typeof membershipId === 'string'
+        ? membershipId
+        : undefined;
   }
 }
