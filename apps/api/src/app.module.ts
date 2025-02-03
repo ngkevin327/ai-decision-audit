@@ -7,6 +7,7 @@ import { HealthModule } from './health/health.module';
 import { ApiKeysModule } from './api-keys/api-keys.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { MetaAuditModule } from './meta-audit/meta-audit.module';
+import { IngestModule } from './ingest/ingest.module';
 import { TracesModule } from './traces/traces.module';
 import { ValidationModule } from './validation/validation.module';
 import { OrganizationsModule } from './organizations/organizations.module';
@@ -29,6 +30,7 @@ import { StorageModule } from './storage/storage.module';
     MembershipsModule,
     MetaAuditModule,
     ValidationModule,
+    IngestModule,
     TracesModule,
     HealthModule,
   ],
