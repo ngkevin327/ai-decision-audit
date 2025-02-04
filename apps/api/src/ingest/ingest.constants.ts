@@ -1,0 +1,2 @@
+export const PAYLOAD_OFFLOAD_THRESHOLD_BYTES = 64 * 1024;
+export const INGEST_MAX_BODY_BYTES = 5 * 1024 * 1024;
