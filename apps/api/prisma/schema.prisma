@@ -53,7 +53,8 @@ model Organization {
   projects      Project[]
   apiKeys       ApiKey[]
   metaAuditLogs MetaAuditLog[]
-  traces        Trace[]
+  traces              Trace[]
+  ingestIdempotency   IngestIdempotency[]
 
   @@map("organizations")
 }
@@ -253,4 +254,18 @@ model Event {
   @@unique([organizationId, externalEventId])
   @@index([spanId, sequenceIndex])
   @@map("events")
+}
+
+model IngestIdempotency {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  idempotencyKey String   @map("idempotency_key")
+  traceId        String   @map("trace_id") @db.Uuid
+  response       Json
+  createdAt      DateTime @default(now()) @map("created_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@unique([organizationId, idempotencyKey])
+  @@map("ingest_idempotency")
 }
