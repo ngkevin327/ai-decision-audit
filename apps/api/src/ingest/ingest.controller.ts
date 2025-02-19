@@ -1,8 +1,11 @@
-import { Body, Controller, Headers, HttpCode, Post } from '@nestjs/common';
+import { Body, Controller, Headers, HttpCode, Post, UseGuards } from '@nestjs/common';
+import { TenantGuard } from '../common/guards/tenant.guard';
 import { IngestTraceResponseDto } from './dto/ingest-trace-response.dto';
+import { IngestAuthGuard } from './guards/ingest-auth.guard';
 import { IngestService } from './ingest.service';
 
 @Controller('v1/traces')
+@UseGuards(TenantGuard, IngestAuthGuard)
 export class IngestController {
   constructor(private readonly ingest: IngestService) {}
 
