@@ -2,6 +2,7 @@ import { MiddlewareConsumer, Module, NestModule } from '@nestjs/common';
 import { AuthModule } from './auth/auth.module';
 import { CommonModule } from './common/common.module';
 import { BodySizeLimitMiddleware } from './common/middleware/body-size-limit.middleware';
+import { RateLimitMiddleware } from './common/middleware/rate-limit.middleware';
 import { TenantContextMiddleware } from './common/middleware/tenant-context.middleware';
 import { AppConfigModule } from './config/config.module';
 import { HealthModule } from './health/health.module';
@@ -38,6 +39,8 @@ import { StorageModule } from './storage/storage.module';
 })
 export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
-    consumer.apply(BodySizeLimitMiddleware, TenantContextMiddleware).forRoutes('*');
+    consumer
+      .apply(BodySizeLimitMiddleware, RateLimitMiddleware, TenantContextMiddleware)
+      .forRoutes('*');
   }
 }
