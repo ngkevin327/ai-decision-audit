@@ -9,6 +9,7 @@ import { IngestTraceResponseDto } from './dto/ingest-trace-response.dto';
 import { IdempotencyService } from './idempotency.service';
 import { IngestPublisher } from './ingest.publisher';
 import { PayloadOffloadService } from './payload-offload.service';
+import { IngestMetrics } from '../metrics/ingest.metrics';
 import { PermissionSnapshotHandler } from './permission-snapshot.handler';
 
 interface FlatEvent {
@@ -26,6 +27,7 @@ export class IngestService {
     private readonly payloadOffload: PayloadOffloadService,
     private readonly publisher: IngestPublisher,
     private readonly permissionSnapshot: PermissionSnapshotHandler,
+    private readonly metrics: IngestMetrics,
   ) {}
 
   async acceptTrace(body: unknown, idempotencyKey?: string): Promise<IngestTraceResponseDto> {

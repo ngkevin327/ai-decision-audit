@@ -10,6 +10,7 @@ import { ApiKeysModule } from './api-keys/api-keys.module';
 import { MembershipsModule } from './memberships/memberships.module';
 import { MetaAuditModule } from './meta-audit/meta-audit.module';
 import { IngestModule } from './ingest/ingest.module';
+import { MetricsModule } from './metrics/metrics.module';
 import { TracesModule } from './traces/traces.module';
 import { ValidationModule } from './validation/validation.module';
 import { OrganizationsModule } from './organizations/organizations.module';

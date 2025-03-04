@@ -24,6 +24,11 @@ export class TenantContextMiddleware implements NestMiddleware {
   }
 
   private isPublicPath(path: string): boolean {
-    return path === '/health' || path.startsWith('/health/') || path.startsWith('/public');
+    return (
+      path === '/health' ||
+      path.startsWith('/health/') ||
+      path.startsWith('/public') ||
+      path === '/metrics'
+    );
   }
 }
