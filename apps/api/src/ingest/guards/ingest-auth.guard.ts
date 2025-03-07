@@ -2,6 +2,7 @@ import { CanActivate, ExecutionContext, ForbiddenException, Injectable } from '@
 import { API_SCOPES } from '../../auth/permission.constants';
 import { TenantContextService } from '../../common/tenant/tenant-context.service';
 
+/** Requires API key authentication with the trace:ingest scope. */
 @Injectable()
 export class IngestAuthGuard implements CanActivate {
   constructor(private readonly tenantContext: TenantContextService) {}
