@@ -1,0 +1,33 @@
+{
+  "schema_version": "1.0",
+  "trace_id": "tr_ingest_test_001",
+  "workflow_name": "support_refund",
+  "actor": {
+    "actor_id": "user_42",
+    "actor_type": "user"
+  },
+  "permission_snapshot": {
+    "policy_version": "2026.05.1",
+    "roles": ["developer"],
+    "scopes": ["trace:ingest"]
+  },
+  "started_at": "2026-05-19T14:31:55Z",
+  "spans": [
+    {
+      "span_id": "span_root",
+      "name": "main",
+      "events": [
+        {
+          "schema_version": "1.0",
+          "event_id": "evt_ingest_001",
+          "type": "prompt",
+          "occurred_at": "2026-05-19T14:31:58Z",
+          "span_id": "span_root",
+          "payload": {
+            "messages": [{ "role": "user", "content": "hello" }]
+          }
+        }
+      ]
+    }
+  ]
+}
