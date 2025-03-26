@@ -4,6 +4,7 @@ import type { TraceIngestEnvelope, TraceSpan } from '@audit-trail/schema';
 import { computeEventChain, sealTrace } from '../integrity/hash-chain';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { TracesRepository } from '../traces/traces.repository';
 import { SchemaValidationService } from '../validation/schema-validation.service';
 import { IngestTraceResponseDto } from './dto/ingest-trace-response.dto';
 import { IdempotencyService } from './idempotency.service';
@@ -21,6 +22,7 @@ interface FlatEvent {
 export class IngestService {
   constructor(
     private readonly prisma: PrismaService,
+    private readonly tracesRepository: TracesRepository,
     private readonly schemaValidation: SchemaValidationService,
     private readonly tenantContext: TenantContextService,
     private readonly idempotency: IdempotencyService,
@@ -52,68 +54,47 @@ export class IngestService {
     const seal = sealTrace(chainInput);
 
     try {
-      const trace = await this.prisma.$transaction(async (tx) => {
-        const created = await tx.trace.create({
-          data: {
-            organizationId: ctx.organizationId,
-            projectId: ctx.projectId!,
-            environmentId: ctx.environmentId,
-            externalTraceId: envelope.trace_id,
-            workflowName: envelope.workflow_name,
-            status: (envelope.status as TraceStatus) ?? TraceStatus.in_progress,
-            startedAt: receivedAt,
-            actor: envelope.actor,
-            tags: envelope.tags ?? undefined,
-            chainHash: seal.finalChainHash,
-            chainVersion: seal.chainVersion,
-            permissionSnapshot: {
-              create: this.permissionSnapshot.toPersistence(snapshot, receivedAt),
-            },
-          },
+      const events = [];
+      let sequenceIndex = 0;
+      for (const item of flatEvents) {
+        const offload = await this.payloadOffload.maybeOffload(
+          ctx.organizationId,
+          envelope.trace_id,
+          item.event.event_id,
+          item.event.payload,
+        );
+        events.push({
+          spanExternalId: item.spanExternalId,
+          externalEventId: item.event.event_id,
+          type: item.event.type as EventType,
+          occurredAt: new Date(item.event.occurred_at),
+          sequenceIndex,
+          contentHash: contentHashes[sequenceIndex],
+          chainHash: chainHashes[sequenceIndex],
+          payloadRef: offload.payloadRef,
         });
+        sequenceIndex += 1;
+      }
 
-        const spanIdByExternal = new Map<string, string>();
-        for (const span of envelope.spans) {
-          const row = await tx.span.create({
-            data: {
-              traceId: created.id,
-              externalSpanId: span.span_id,
-              parentSpanId: span.parent_span_id,
-              name: span.name,
-            },
-          });
-          spanIdByExternal.set(span.span_id, row.id);
-        }
-
-        let sequenceIndex = 0;
-        for (const item of flatEvents) {
-          const spanId = spanIdByExternal.get(item.spanExternalId);
-          if (!spanId) continue;
-
-          const offload = await this.payloadOffload.maybeOffload(
-            ctx.organizationId,
-            created.id,
-            item.event.event_id,
-            item.event.payload,
-          );
-
-          await tx.event.create({
-            data: {
-              spanId,
-              organizationId: ctx.organizationId,
-              externalEventId: item.event.event_id,
-              type: item.event.type as EventType,
-              occurredAt: new Date(item.event.occurred_at),
-              sequenceIndex,
-              contentHash: contentHashes[sequenceIndex],
-              chainHash: chainHashes[sequenceIndex],
-              payloadRef: offload.payloadRef,
-            },
-          });
-          sequenceIndex += 1;
-        }
-
-        return created;
+      const trace = await this.tracesRepository.createFromIngest({
+        organizationId: ctx.organizationId,
+        projectId: ctx.projectId,
+        environmentId: ctx.environmentId,
+        externalTraceId: envelope.trace_id,
+        workflowName: envelope.workflow_name,
+        status: (envelope.status as TraceStatus) ?? TraceStatus.in_progress,
+        startedAt: receivedAt,
+        actor: envelope.actor,
+        tags: envelope.tags ?? undefined,
+        chainHash: seal.finalChainHash,
+        chainVersion: seal.chainVersion,
+        permissionSnapshot: this.permissionSnapshot.toPersistence(snapshot, receivedAt),
+        spans: envelope.spans.map((span) => ({
+          externalSpanId: span.span_id,
+          parentSpanId: span.parent_span_id,
+          name: span.name,
+        })),
+        events,
       });
 
       const response: IngestTraceResponseDto = {
@@ -124,7 +105,7 @@ export class IngestService {
       await this.publisher.publishIndexJob({
         traceId: trace.id,
         organizationId: ctx.organizationId,
-        projectId: ctx.projectId!,
+        projectId: ctx.projectId,
         enqueuedAt: receivedAt.toISOString(),
       });
 

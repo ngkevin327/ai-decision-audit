@@ -6,8 +6,10 @@ import { IngestService } from './ingest.service';
 import { PayloadOffloadService } from './payload-offload.service';
 import { PermissionSnapshotHandler } from './permission-snapshot.handler';
 import { IngestAuthGuard } from './guards/ingest-auth.guard';
+import { TracesModule } from '../traces/traces.module';
 
 @Module({
+  imports: [TracesModule],
   controllers: [IngestController],
   providers: [
     IngestService,
