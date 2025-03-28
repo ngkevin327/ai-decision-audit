@@ -12,6 +12,7 @@ import { IngestPublisher } from './ingest.publisher';
 import { PayloadOffloadService } from './payload-offload.service';
 import { IngestMetrics } from '../metrics/ingest.metrics';
 import { PermissionSnapshotHandler } from './permission-snapshot.handler';
+import { SpanTreeValidator } from './span-tree.validator';
 
 interface FlatEvent {
   spanExternalId: string;
@@ -30,6 +31,7 @@ export class IngestService {
     private readonly publisher: IngestPublisher,
     private readonly permissionSnapshot: PermissionSnapshotHandler,
     private readonly metrics: IngestMetrics,
+    private readonly spanTreeValidator: SpanTreeValidator,
   ) {}
 
   async acceptTrace(body: unknown, idempotencyKey?: string): Promise<IngestTraceResponseDto> {
@@ -42,6 +44,7 @@ export class IngestService {
 
     const envelope = this.schemaValidation.validateTraceEnvelope(body);
     const snapshot = this.permissionSnapshot.assertPresent(envelope);
+    const spanValidation = this.spanTreeValidator.validate(envelope.spans);
 
     if (!ctx.projectId) {
       throw new BadRequestException('Ingest requires an API key scoped to a project');
@@ -52,6 +55,12 @@ export class IngestService {
     const chainInput = flatEvents.map((item) => item.event);
     const { contentHashes, chainHashes } = computeEventChain(chainInput);
     const seal = sealTrace(chainInput);
+    const tags = {
+      ...(envelope.tags ?? {}),
+      ...(spanValidation.orphanSpanIds.length
+        ? { orphan_span_warning: spanValidation.orphanSpanIds.join(',') }
+        : {}),
+    };
 
     try {
       const events = [];
@@ -85,7 +94,7 @@ export class IngestService {
         status: (envelope.status as TraceStatus) ?? TraceStatus.in_progress,
         startedAt: receivedAt,
         actor: envelope.actor,
-        tags: envelope.tags ?? undefined,
+        tags,
         chainHash: seal.finalChainHash,
         chainVersion: seal.chainVersion,
         permissionSnapshot: this.permissionSnapshot.toPersistence(snapshot, receivedAt),

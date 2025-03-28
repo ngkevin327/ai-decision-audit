@@ -6,6 +6,7 @@ import { IngestService } from './ingest.service';
 import { PayloadOffloadService } from './payload-offload.service';
 import { PermissionSnapshotHandler } from './permission-snapshot.handler';
 import { IngestAuthGuard } from './guards/ingest-auth.guard';
+import { SpanTreeValidator } from './span-tree.validator';
 import { TracesModule } from '../traces/traces.module';
 
 @Module({
@@ -18,6 +19,7 @@ import { TracesModule } from '../traces/traces.module';
     IdempotencyService,
     PermissionSnapshotHandler,
     IngestAuthGuard,
+    SpanTreeValidator,
   ],
   exports: [IngestService],
 })
