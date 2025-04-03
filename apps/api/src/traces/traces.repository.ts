@@ -32,6 +32,7 @@ export interface PersistIngestTraceInput {
   workflowName: string;
   status: TraceStatus;
   startedAt: Date;
+  serverReceivedAt: Date;
   actor: Prisma.InputJsonValue;
   tags?: Prisma.InputJsonValue;
   chainHash: string;
@@ -74,6 +75,7 @@ export class TracesRepository {
           workflowName: input.workflowName,
           status: input.status,
           startedAt: input.startedAt,
+          serverReceivedAt: input.serverReceivedAt,
           actor: input.actor,
           tags: input.tags,
           chainHash: input.chainHash,
@@ -165,6 +167,7 @@ export class TracesRepository {
         workflowName: true,
         status: true,
         startedAt: true,
+        serverReceivedAt: true,
         completedAt: true,
         projectId: true,
         chainHash: true,

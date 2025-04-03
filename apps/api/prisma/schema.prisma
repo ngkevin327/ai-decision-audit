@@ -186,8 +186,9 @@ model Trace {
   externalTraceId String      @map("external_trace_id")
   workflowName    String      @map("workflow_name")
   status          TraceStatus @default(in_progress)
-  startedAt       DateTime    @map("started_at")
-  completedAt     DateTime?   @map("completed_at")
+  startedAt         DateTime  @map("started_at")
+  serverReceivedAt  DateTime  @default(now()) @map("server_received_at")
+  completedAt       DateTime? @map("completed_at")
   chainHash       String?     @map("chain_hash")
   chainVersion    Int         @default(1) @map("chain_version")
   actor           Json

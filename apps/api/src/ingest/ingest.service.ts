@@ -50,7 +50,7 @@ export class IngestService {
       throw new BadRequestException('Ingest requires an API key scoped to a project');
     }
 
-    const receivedAt = new Date();
+    const serverReceivedAt = new Date();
     const flatEvents = this.flattenEvents(envelope.spans);
     const chainInput = flatEvents.map((item) => item.event);
     const { contentHashes, chainHashes } = computeEventChain(chainInput);
@@ -92,12 +92,13 @@ export class IngestService {
         externalTraceId: envelope.trace_id,
         workflowName: envelope.workflow_name,
         status: (envelope.status as TraceStatus) ?? TraceStatus.in_progress,
-        startedAt: receivedAt,
+        startedAt: serverReceivedAt,
+        serverReceivedAt,
         actor: envelope.actor,
         tags,
         chainHash: seal.finalChainHash,
         chainVersion: seal.chainVersion,
-        permissionSnapshot: this.permissionSnapshot.toPersistence(snapshot, receivedAt),
+        permissionSnapshot: this.permissionSnapshot.toPersistence(snapshot, serverReceivedAt),
         spans: envelope.spans.map((span) => ({
           externalSpanId: span.span_id,
           parentSpanId: span.parent_span_id,
@@ -108,22 +109,24 @@ export class IngestService {
 
       const response: IngestTraceResponseDto = {
         trace_id: trace.externalTraceId,
-        received_at: receivedAt.toISOString(),
+        received_at: serverReceivedAt.toISOString(),
       };
 
       await this.publisher.publishIndexJob({
         traceId: trace.id,
         organizationId: ctx.organizationId,
         projectId: ctx.projectId,
-        enqueuedAt: receivedAt.toISOString(),
+        enqueuedAt: serverReceivedAt.toISOString(),
       });
 
       if (idempotencyKey) {
         await this.idempotency.store(ctx.organizationId, idempotencyKey, trace.id, response);
       }
 
+      this.metrics.recordAccepted();
       return response;
     } catch (error) {
+      this.metrics.recordRejected();
       if (this.isDuplicateEventError(error)) {
         const existing = await this.prisma.trace.findUnique({
           where: {
@@ -136,7 +139,7 @@ export class IngestService {
         if (existing) {
           return {
             trace_id: existing.externalTraceId,
-            received_at: existing.startedAt.toISOString(),
+            received_at: existing.serverReceivedAt.toISOString(),
           };
         }
         throw new ConflictException('Duplicate event_id detected');
