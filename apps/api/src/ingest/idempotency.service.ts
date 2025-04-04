@@ -1,4 +1,5 @@
 import { Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { PrismaService } from '../prisma/prisma.service';
 import { IngestTraceResponseDto } from './dto/ingest-trace-response.dto';
 
@@ -16,7 +17,7 @@ export class IdempotencyService {
       },
     });
     if (!record) return null;
-    return record.response as IngestTraceResponseDto;
+    return record.response as unknown as IngestTraceResponseDto;
   }
 
   async store(

@@ -1,5 +1,5 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
-import { EventType, TraceStatus } from '@prisma/client';
+import { EventType, Prisma, TraceStatus } from '@prisma/client';
 import type { TraceIngestEnvelope, TraceSpan } from '@audit-trail/schema';
 import { computeEventChain, sealTrace } from '../integrity/hash-chain';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
@@ -94,7 +94,7 @@ export class IngestService {
         status: (envelope.status as TraceStatus) ?? TraceStatus.in_progress,
         startedAt: serverReceivedAt,
         serverReceivedAt,
-        actor: envelope.actor,
+        actor: envelope.actor as unknown as Prisma.InputJsonValue,
         tags,
         chainHash: seal.finalChainHash,
         chainVersion: seal.chainVersion,
