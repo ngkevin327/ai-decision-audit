@@ -2,6 +2,7 @@ import { Injectable, Logger, NotFoundException } from '@nestjs/common';
 import { PrismaService } from '@api/prisma/prisma.service';
 import type { TraceIndexJob } from '@api/ingest/ingest.publisher';
 import { HashChainProcessor } from './hash-chain.processor';
+import { SearchProjectionService } from './search-projection.service';
 
 @Injectable()
 export class IndexerService {
@@ -10,6 +11,7 @@ export class IndexerService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly hashChainProcessor: HashChainProcessor,
+    private readonly searchProjection: SearchProjectionService,
   ) {}
 
   async processIndexJob(job: TraceIndexJob): Promise<void> {
@@ -36,11 +38,11 @@ export class IndexerService {
         chainHash: event.chainHash,
       }));
 
-    const finalChainHash = this.hashChainProcessor.verifyChain(orderedEvents);
+    this.hashChainProcessor.verifyChain(orderedEvents);
+    await this.searchProjection.update(trace);
 
     this.logger.log('hash chain verified', {
       traceId: job.traceId,
-      finalChainHash,
       eventCount: orderedEvents.length,
     });
   }

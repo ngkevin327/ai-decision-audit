@@ -191,6 +191,8 @@ model Trace {
   completedAt       DateTime? @map("completed_at")
   chainHash       String?     @map("chain_hash")
   chainVersion    Int         @default(1) @map("chain_version")
+  indexedAt       DateTime?   @map("indexed_at")
+  primaryModel    String?     @map("primary_model")
   actor           Json
   tags            Json?
   createdAt       DateTime    @default(now()) @map("created_at")
