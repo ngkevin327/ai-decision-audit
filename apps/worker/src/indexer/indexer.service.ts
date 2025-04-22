@@ -3,6 +3,7 @@ import { PrismaService } from '@api/prisma/prisma.service';
 import type { TraceIndexJob } from '@api/ingest/ingest.publisher';
 import { HashChainProcessor } from './hash-chain.processor';
 import { SearchProjectionService } from './search-projection.service';
+import { TraceSealService } from './trace-seal.service';
 
 @Injectable()
 export class IndexerService {
@@ -12,6 +13,7 @@ export class IndexerService {
     private readonly prisma: PrismaService,
     private readonly hashChainProcessor: HashChainProcessor,
     private readonly searchProjection: SearchProjectionService,
+    private readonly traceSeal: TraceSealService,
   ) {}
 
   async processIndexJob(job: TraceIndexJob): Promise<void> {
@@ -38,8 +40,9 @@ export class IndexerService {
         chainHash: event.chainHash,
       }));
 
-    this.hashChainProcessor.verifyChain(orderedEvents);
+    const finalChainHash = this.hashChainProcessor.verifyChain(orderedEvents);
     await this.searchProjection.update(trace);
+    await this.traceSeal.sealIfTerminal(trace.id, trace.status, finalChainHash);
 
     this.logger.log('hash chain verified', {
       traceId: job.traceId,
