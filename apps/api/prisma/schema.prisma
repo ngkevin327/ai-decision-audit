@@ -55,6 +55,7 @@ model Organization {
   metaAuditLogs MetaAuditLog[]
   traces              Trace[]
   ingestIdempotency   IngestIdempotency[]
+  indexJobDlq         IndexJobDlq[]
 
   @@map("organizations")
 }
@@ -258,6 +259,21 @@ model Event {
   @@unique([organizationId, externalEventId])
   @@index([spanId, sequenceIndex])
   @@map("events")
+}
+
+model IndexJobDlq {
+  id             String   @id @default(uuid()) @db.Uuid
+  organizationId String   @map("organization_id") @db.Uuid
+  traceId        String   @map("trace_id") @db.Uuid
+  jobPayload     Json     @map("job_payload")
+  errorMessage   String   @map("error_message")
+  attemptCount   Int      @map("attempt_count")
+  failedAt       DateTime @default(now()) @map("failed_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, failedAt])
+  @@map("index_job_dlq")
 }
 
 model IngestIdempotency {
