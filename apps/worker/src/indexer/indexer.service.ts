@@ -3,6 +3,7 @@ import { PrismaService } from '@api/prisma/prisma.service';
 import type { TraceIndexJob } from '@api/ingest/ingest.publisher';
 import { HashChainProcessor } from './hash-chain.processor';
 import { SearchProjectionService } from './search-projection.service';
+import { IndexLagMetric } from '../metrics/index-lag.metric';
 import { TraceSealService } from './trace-seal.service';
 
 @Injectable()
@@ -14,6 +15,7 @@ export class IndexerService {
     private readonly hashChainProcessor: HashChainProcessor,
     private readonly searchProjection: SearchProjectionService,
     private readonly traceSeal: TraceSealService,
+    private readonly indexLagMetric: IndexLagMetric,
   ) {}
 
   async processIndexJob(job: TraceIndexJob): Promise<void> {
@@ -42,6 +44,10 @@ export class IndexerService {
 
     const finalChainHash = this.hashChainProcessor.verifyChain(orderedEvents);
     await this.searchProjection.update(trace);
+    const indexed = await this.prisma.trace.findUnique({ where: { id: trace.id } });
+    if (indexed?.indexedAt) {
+      this.indexLagMetric.record(trace.id, trace.serverReceivedAt, indexed.indexedAt);
+    }
     await this.traceSeal.sealIfTerminal(trace.id, trace.status, finalChainHash);
 
     this.logger.log('hash chain verified', {
