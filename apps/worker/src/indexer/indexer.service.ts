@@ -5,6 +5,7 @@ import { HashChainProcessor } from './hash-chain.processor';
 import { SearchProjectionService } from './search-projection.service';
 import { IndexLagMetric } from '../metrics/index-lag.metric';
 import { TraceSealService } from './trace-seal.service';
+import { TraceStatusResolver } from './trace-status.resolver';
 
 @Injectable()
 export class IndexerService {
@@ -16,6 +17,7 @@ export class IndexerService {
     private readonly searchProjection: SearchProjectionService,
     private readonly traceSeal: TraceSealService,
     private readonly indexLagMetric: IndexLagMetric,
+    private readonly traceStatusResolver: TraceStatusResolver,
   ) {}
 
   async processIndexJob(job: TraceIndexJob): Promise<void> {

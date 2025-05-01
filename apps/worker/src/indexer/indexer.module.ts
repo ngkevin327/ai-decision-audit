@@ -5,6 +5,7 @@ import { SearchProjectionService } from './search-projection.service';
 import { IndexLagMetric } from '../metrics/index-lag.metric';
 import { IndexerDlqHandler } from './indexer.dlq';
 import { TraceSealService } from './trace-seal.service';
+import { TraceStatusResolver } from './trace-status.resolver';
 import { IndexerConsumer } from './indexer.consumer';
 import { IndexerService } from './indexer.service';
 
