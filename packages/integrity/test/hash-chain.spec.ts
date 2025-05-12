@@ -1,16 +1,16 @@
 import { readFileSync } from 'fs';
 import { join } from 'path';
-import { canonicalize } from './canonical-json';
 import {
   CHAIN_ALGORITHM_VERSION,
+  canonicalize,
   chainHash,
   computeEventChain,
   contentHash,
   GENESIS_HASH,
   sealTrace,
-} from './hash-chain';
+} from '../src';
 
-const fixturePath = join(__dirname, '../../test/fixtures/hash-chain.json');
+const fixturePath = join(__dirname, 'fixtures/hash-chain.json');
 const fixture = JSON.parse(readFileSync(fixturePath, 'utf-8')) as {
   events: unknown[];
   expected: { contentHashes: string[]; chainHashes: string[]; finalChainHash: string };

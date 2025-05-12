@@ -1,7 +1,7 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import { EventType, Prisma, TraceStatus } from '@prisma/client';
 import type { TraceIngestEnvelope, TraceSpan } from '@audit-trail/schema';
-import { computeEventChain, sealTrace } from '../integrity/hash-chain';
+import { computeEventChain, sealTrace } from '@audit-trail/integrity';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
 import { TracesRepository } from '../traces/traces.repository';

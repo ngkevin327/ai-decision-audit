@@ -1,5 +1,5 @@
 import { Injectable, UnprocessableEntityException } from '@nestjs/common';
-import { GENESIS_HASH, chainHash } from '@api/integrity/hash-chain';
+import { GENESIS_HASH, chainHash } from '@audit-trail/integrity';
 
 export interface IndexedEventHashes {
   contentHash: string;
