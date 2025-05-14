@@ -65,5 +65,11 @@ jobs:
       - name: Apply migrations
         run: pnpm db:migrate
 
+      - name: Build workspace packages
+        run: pnpm --filter @audit-trail/integrity build
+
       - name: API integration smoke
         run: pnpm --filter @audit-trail/api exec jest --passWithNoTests
+
+      - name: Worker indexer integration tests
+        run: pnpm --filter @audit-trail/worker test
