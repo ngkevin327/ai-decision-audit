@@ -19,6 +19,7 @@ import { IndexerService } from './indexer.service';
     TraceSealService,
     IndexerDlqHandler,
     IndexLagMetric,
+    TraceStatusResolver,
   ],
 })
 export class IndexerModule {}

@@ -50,7 +50,8 @@ export class IndexerService {
     if (indexed?.indexedAt) {
       this.indexLagMetric.record(trace.id, trace.serverReceivedAt, indexed.indexedAt);
     }
-    await this.traceSeal.sealIfTerminal(trace.id, trace.status, finalChainHash);
+    const resolvedStatus = this.traceStatusResolver.resolve(trace);
+    await this.traceSeal.sealIfTerminal(trace.id, resolvedStatus, finalChainHash);
 
     this.logger.log('hash chain verified', {
       traceId: job.traceId,

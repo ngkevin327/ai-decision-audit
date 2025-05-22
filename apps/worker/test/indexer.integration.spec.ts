@@ -20,7 +20,12 @@ const GOLDEN = {
 };
 
 function buildTrace(status: TraceStatus, includeCompletion: boolean) {
-  const events = [
+  const events: Array<{
+    sequenceIndex: number;
+    contentHash: string;
+    chainHash: string;
+    type: EventType;
+  }> = [
     {
       sequenceIndex: 0,
       contentHash: GOLDEN.contentHashes[0],
