@@ -1,5 +1,6 @@
-import { Injectable } from '@nestjs/common';
+import { BadRequestException, Injectable } from '@nestjs/common';
 import { Prisma, TraceStatus } from '@prisma/client';
+import { buildNextCursor, decodeTraceCursor } from '../common/pagination/cursor-pagination';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { TraceSearchQueryDto } from './dto/trace-search-query.dto';
@@ -46,10 +47,29 @@ export class TracesQueryService {
       };
     }
 
+    if (query.cursor) {
+      try {
+        const decoded = decodeTraceCursor(query.cursor);
+        where.AND = [
+          {
+            OR: [
+              { startedAt: { lt: new Date(decoded.startedAt) } },
+              {
+                startedAt: new Date(decoded.startedAt),
+                id: { lt: decoded.id },
+              },
+            ],
+          },
+        ];
+      } catch {
+        throw new BadRequestException('Invalid pagination cursor');
+      }
+    }
+
     const rows = await this.prisma.trace.findMany({
       where,
       orderBy: [{ startedAt: 'desc' }, { id: 'desc' }],
-      take: limit,
+      take: limit + 1,
       select: {
         id: true,
         externalTraceId: true,
@@ -63,9 +83,11 @@ export class TracesQueryService {
       },
     });
 
+    const page = rows.slice(0, limit);
+
     return {
-      traces: rows.map((row) => this.toListItem(row)),
-      next_cursor: null,
+      traces: page.map((row) => this.toListItem(row)),
+      next_cursor: buildNextCursor(rows, limit),
     };
   }
 
