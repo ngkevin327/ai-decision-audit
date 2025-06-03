@@ -1,5 +1,7 @@
 import { Module } from '@nestjs/common';
+import { StorageModule } from '../storage/storage.module';
 import { TracesModule } from '../traces/traces.module';
+import { PayloadHydrationService } from './payload-hydration.service';
 import { TraceDetailService } from './trace-detail.service';
 import { TracesQueryController } from './traces-query.controller';
 import { TracesQueryService } from './traces-query.service';

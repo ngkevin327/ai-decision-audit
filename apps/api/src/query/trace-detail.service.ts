@@ -1,14 +1,15 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
-import { Prisma } from '@prisma/client';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
 import type { TraceDetailDto, TraceEventTimelineItemDto } from './dto/trace-detail.dto';
+import { PayloadHydrationService } from './payload-hydration.service';
 
 @Injectable()
 export class TraceDetailService {
   constructor(
     private readonly prisma: PrismaService,
     private readonly tenantContext: TenantContextService,
+    private readonly payloadHydration: PayloadHydrationService,
   ) {}
 
   async getDetail(traceId: string): Promise<TraceDetailDto> {
@@ -53,6 +54,13 @@ export class TraceDetailService {
     }
 
     events.sort((a, b) => a.sequence_index - b.sequence_index);
+
+    const cache = this.payloadHydration.createRequestCache();
+    for (const event of events) {
+      if (event.payload_ref) {
+        event.payload = await this.payloadHydration.hydratePayload(event.payload_ref, cache);
+      }
+    }
 
     return {
       trace_id: trace.externalTraceId,
