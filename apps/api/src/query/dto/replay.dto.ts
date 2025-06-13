@@ -1,4 +1,5 @@
 import { EventType } from '@prisma/client';
+import type { PermissionSnapshotDto } from './trace-detail.dto';
 
 export interface ReplayStepDto {
   event_id: string;
@@ -14,5 +15,6 @@ export interface ReplayStepDto {
 export interface ReplayTimelineDto {
   trace_id: string;
   workflow_name: string;
+  permission_snapshot: PermissionSnapshotDto | null;
   steps: ReplayStepDto[];
 }

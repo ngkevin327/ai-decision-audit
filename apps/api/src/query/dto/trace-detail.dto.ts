@@ -13,6 +13,15 @@ export interface TraceEventTimelineItemDto {
   payload: unknown | null;
 }
 
+export interface PermissionSnapshotDto {
+  policy_version: string;
+  roles: string[];
+  scopes: string[];
+  resource_ids: string[];
+  denied_resources: string[];
+  captured_at: string;
+}
+
 export interface TraceDetailDto {
   trace_id: string;
   workflow_name: string;
@@ -24,5 +33,6 @@ export interface TraceDetailDto {
   chain_hash: string | null;
   actor: unknown;
   tags: unknown;
+  permission_snapshot: PermissionSnapshotDto | null;
   events: TraceEventTimelineItemDto[];
 }

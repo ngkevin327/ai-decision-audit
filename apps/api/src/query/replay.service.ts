@@ -22,6 +22,7 @@ export class ReplayService {
     return {
       trace_id: detail.trace_id,
       workflow_name: detail.workflow_name,
+      permission_snapshot: detail.permission_snapshot,
       steps,
     };
   }

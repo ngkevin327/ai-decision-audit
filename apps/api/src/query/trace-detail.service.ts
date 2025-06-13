@@ -1,7 +1,11 @@
 import { Injectable, NotFoundException } from '@nestjs/common';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
-import type { TraceDetailDto, TraceEventTimelineItemDto } from './dto/trace-detail.dto';
+import type {
+  PermissionSnapshotDto,
+  TraceDetailDto,
+  TraceEventTimelineItemDto,
+} from './dto/trace-detail.dto';
 import { PayloadHydrationService } from './payload-hydration.service';
 
 @Injectable()
@@ -21,6 +25,7 @@ export class TraceDetailService {
         OR: [{ id: traceId }, { externalTraceId: traceId }],
       },
       include: {
+        permissionSnapshot: true,
         spans: {
           include: {
             events: { orderBy: { sequenceIndex: 'asc' } },
@@ -73,7 +78,31 @@ export class TraceDetailService {
       chain_hash: trace.chainHash,
       actor: trace.actor,
       tags: trace.tags ?? undefined,
+      permission_snapshot: this.toPermissionSnapshot(trace.permissionSnapshot),
       events,
+    };
+  }
+
+  private toPermissionSnapshot(
+    snapshot: {
+      policyVersion: string;
+      roles: string[];
+      scopes: string[];
+      resourceIds: string[];
+      deniedResources: string[];
+      capturedAt: Date;
+    } | null,
+  ): PermissionSnapshotDto | null {
+    if (!snapshot) {
+      return null;
+    }
+    return {
+      policy_version: snapshot.policyVersion,
+      roles: snapshot.roles,
+      scopes: snapshot.scopes,
+      resource_ids: snapshot.resourceIds,
+      denied_resources: snapshot.deniedResources,
+      captured_at: snapshot.capturedAt.toISOString(),
     };
   }
 }
