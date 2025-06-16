@@ -1,6 +1,7 @@
 import { Controller, Get, Param, Query, UseGuards } from '@nestjs/common';
 import { TraceStatus } from '@prisma/client';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { QueryAuthGuard } from './guards/query-auth.guard';
 import type { TraceSearchQueryDto } from './dto/trace-search-query.dto';
 import type { TraceListResponseDto } from './dto/trace-list-item.dto';
 import { TraceDetailService } from './trace-detail.service';
@@ -8,7 +9,7 @@ import type { TraceDetailDto } from './dto/trace-detail.dto';
 import { TracesQueryService } from './traces-query.service';
 
 @Controller('v1/traces')
-@UseGuards(TenantGuard)
+@UseGuards(TenantGuard, QueryAuthGuard)
 export class TracesQueryController {
   constructor(
     private readonly tracesQuery: TracesQueryService,

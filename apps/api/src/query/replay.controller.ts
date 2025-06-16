@@ -1,10 +1,11 @@
 import { Controller, Get, Param, UseGuards } from '@nestjs/common';
 import { TenantGuard } from '../common/guards/tenant.guard';
+import { QueryAuthGuard } from './guards/query-auth.guard';
 import type { ReplayTimelineDto } from './dto/replay.dto';
 import { ReplayService } from './replay.service';
 
 @Controller('v1/traces')
-@UseGuards(TenantGuard)
+@UseGuards(TenantGuard, QueryAuthGuard)
 export class ReplayController {
   constructor(private readonly replay: ReplayService) {}
 
