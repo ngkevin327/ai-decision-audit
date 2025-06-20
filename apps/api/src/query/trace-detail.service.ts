@@ -61,11 +61,13 @@ export class TraceDetailService {
     events.sort((a, b) => a.sequence_index - b.sequence_index);
 
     const cache = this.payloadHydration.createRequestCache();
-    for (const event of events) {
-      if (event.payload_ref) {
-        event.payload = await this.payloadHydration.hydratePayload(event.payload_ref, cache);
-      }
-    }
+    const payloads = await this.payloadHydration.hydrateMany(
+      events.map((event) => event.payload_ref),
+      cache,
+    );
+    events.forEach((event, index) => {
+      event.payload = payloads[index];
+    });
 
     return {
       trace_id: trace.externalTraceId,

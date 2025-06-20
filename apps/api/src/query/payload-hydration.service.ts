@@ -36,6 +36,15 @@ export class PayloadHydrationService {
     }
   }
 
+  async hydrateMany(
+    payloadRefs: Array<string | null>,
+    cache: Map<string, unknown>,
+  ): Promise<Array<unknown | null>> {
+    const uniqueRefs = [...new Set(payloadRefs.filter((ref): ref is string => Boolean(ref)))];
+    await Promise.all(uniqueRefs.map((ref) => this.hydratePayload(ref, cache)));
+    return payloadRefs.map((ref) => (ref ? (cache.get(ref) ?? null) : null));
+  }
+
   createRequestCache(): Map<string, unknown> {
     return new Map();
   }
