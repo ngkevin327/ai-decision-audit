@@ -77,6 +77,64 @@ paths:
           description: API key issued (plaintext returned once)
 
   /v1/traces:
+    get:
+      summary: Search traces
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - name: project_id
+          in: query
+          schema:
+            type: string
+            format: uuid
+        - name: status
+          in: query
+          schema:
+            type: string
+            enum: [in_progress, completed, failed, cancelled]
+        - name: workflow_name
+          in: query
+          schema:
+            type: string
+        - name: actor_id
+          in: query
+          schema:
+            type: string
+        - name: model
+          in: query
+          schema:
+            type: string
+        - name: q
+          in: query
+          schema:
+            type: string
+        - name: started_after
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: started_before
+          in: query
+          schema:
+            type: string
+            format: date-time
+        - name: cursor
+          in: query
+          schema:
+            type: string
+        - name: limit
+          in: query
+          schema:
+            type: integer
+            maximum: 100
+      responses:
+        '200':
+          description: Trace list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceListResponse'
     post:
       summary: Ingest trace envelope
       security:
@@ -107,6 +165,50 @@ paths:
           description: Payload too large
         '429':
           description: Rate limited
+
+  /v1/traces/{id}:
+    get:
+      summary: Get trace detail with event timeline
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Trace detail
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/TraceDetail'
+        '404':
+          description: Trace not found
+
+  /v1/traces/{id}/replay:
+    get:
+      summary: Get replay timeline
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - name: id
+          in: path
+          required: true
+          schema:
+            type: string
+      responses:
+        '200':
+          description: Replay timeline
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ReplayTimeline'
+        '404':
+          description: Trace not found
 
   /organizations/{orgId}/members/invite:
     post:
@@ -190,3 +292,111 @@ components:
     TraceIngestEnvelope:
       type: object
       description: See packages/schema/schemas/v1/trace-envelope.schema.json
+
+    TraceListResponse:
+      type: object
+      required: [traces, next_cursor]
+      properties:
+        traces:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceListItem'
+        next_cursor:
+          type: string
+          nullable: true
+
+    TraceListItem:
+      type: object
+      properties:
+        trace_id:
+          type: string
+        workflow_name:
+          type: string
+        status:
+          type: string
+        started_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        project_id:
+          type: string
+          format: uuid
+        chain_hash:
+          type: string
+          nullable: true
+
+    TraceDetail:
+      type: object
+      properties:
+        trace_id:
+          type: string
+        workflow_name:
+          type: string
+        status:
+          type: string
+        permission_snapshot:
+          $ref: '#/components/schemas/PermissionSnapshot'
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceEventTimelineItem'
+
+    PermissionSnapshot:
+      type: object
+      properties:
+        policy_version:
+          type: string
+        roles:
+          type: array
+          items:
+            type: string
+        scopes:
+          type: array
+          items:
+            type: string
+
+    TraceEventTimelineItem:
+      type: object
+      properties:
+        event_id:
+          type: string
+        type:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        payload:
+          type: object
+          nullable: true
+
+    ReplayTimeline:
+      type: object
+      properties:
+        trace_id:
+          type: string
+        workflow_name:
+          type: string
+        permission_snapshot:
+          $ref: '#/components/schemas/PermissionSnapshot'
+        steps:
+          type: array
+          items:
+            $ref: '#/components/schemas/ReplayStep'
+
+    ReplayStep:
+      type: object
+      properties:
+        event_id:
+          type: string
+        prev_event_id:
+          type: string
+          nullable: true
+        next_event_id:
+          type: string
+          nullable: true
