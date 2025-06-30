@@ -3,6 +3,7 @@ import { Prisma, TraceStatus } from '@prisma/client';
 import { buildNextCursor, decodeTraceCursor } from '../common/pagination/cursor-pagination';
 import { TenantContextService } from '../common/tenant/tenant-context.service';
 import { PrismaService } from '../prisma/prisma.service';
+import { retentionCutoff } from './retention.policy';
 import type { TraceSearchQueryDto } from './dto/trace-search-query.dto';
 import type { TraceListItemDto, TraceListResponseDto } from './dto/trace-list-item.dto';
 
@@ -19,6 +20,17 @@ export class TracesQueryService {
   async search(query: TraceSearchQueryDto): Promise<TraceListResponseDto> {
     const ctx = this.tenantContext.require();
     const limit = Math.min(query.limit ?? DEFAULT_LIMIT, MAX_LIMIT);
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: ctx.organizationId },
+    });
+    if (!organization) {
+      return { traces: [], next_cursor: null };
+    }
+
+    const retentionStart = retentionCutoff(organization.planTier);
+    const startedAfter = query.startedAfter ? new Date(query.startedAfter) : undefined;
+    const effectiveStartedAfter =
+      startedAfter && startedAfter > retentionStart ? startedAfter : retentionStart;
 
     const where: Prisma.TraceWhereInput = {
       organizationId: ctx.organizationId,
@@ -31,7 +43,7 @@ export class TracesQueryService {
           : undefined,
       primaryModel: query.model,
       startedAt: {
-        gte: query.startedAfter ? new Date(query.startedAfter) : undefined,
+        gte: effectiveStartedAfter,
         lte: query.startedBefore ? new Date(query.startedBefore) : undefined,
       },
     };

@@ -7,6 +7,7 @@ import type {
   TraceEventTimelineItemDto,
 } from './dto/trace-detail.dto';
 import { PayloadHydrationService } from './payload-hydration.service';
+import { isWithinRetention } from './retention.policy';
 
 @Injectable()
 export class TraceDetailService {
@@ -35,6 +36,13 @@ export class TraceDetailService {
     });
 
     if (!trace) {
+      throw new NotFoundException('Trace not found');
+    }
+
+    const organization = await this.prisma.organization.findUnique({
+      where: { id: ctx.organizationId },
+    });
+    if (!organization || !isWithinRetention(trace.startedAt, organization.planTier)) {
       throw new NotFoundException('Trace not found');
     }
 

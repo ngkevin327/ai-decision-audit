@@ -61,6 +61,7 @@ describe('ReplayService integration', () => {
 
     const prisma = {
       trace: { findFirst: jest.fn().mockResolvedValue(trace) },
+      organization: { findUnique: jest.fn().mockResolvedValue({ planTier: 'starter' }) },
     };
 
     const moduleRef = await Test.createTestingModule({

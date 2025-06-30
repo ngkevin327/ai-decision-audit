@@ -1,10 +1,12 @@
-import { ForbiddenException } from '@nestjs/common';
+import { ForbiddenException, NotFoundException } from '@nestjs/common';
 import { Test } from '@nestjs/testing';
 import { TraceStatus } from '@prisma/client';
 import { TenantContextService } from '../../src/common/tenant/tenant-context.service';
 import { PrismaService } from '../../src/prisma/prisma.service';
 import { TracesQueryService } from '../../src/query/traces-query.service';
+import { TraceDetailService } from '../../src/query/trace-detail.service';
 import { QueryAuthGuard } from '../../src/query/guards/query-auth.guard';
+import { PayloadHydrationService } from '../../src/query/payload-hydration.service';
 
 describe('TracesQueryService integration', () => {
   let query: TracesQueryService;
@@ -61,6 +63,57 @@ describe('TracesQueryService integration', () => {
         where: expect.objectContaining({ organizationId: 'org-1' }),
       }),
     );
+  });
+});
+
+describe('TraceDetailService retention', () => {
+  it('returns 404 for traces outside retention window', async () => {
+    const prisma = {
+      trace: {
+        findFirst: jest.fn().mockResolvedValue({
+          id: 'uuid-old',
+          externalTraceId: 'tr_old',
+          workflowName: 'wf',
+          status: TraceStatus.completed,
+          startedAt: new Date('2020-01-01T00:00:00Z'),
+          serverReceivedAt: new Date('2020-01-01T00:00:00Z'),
+          completedAt: null,
+          sealedAt: null,
+          chainHash: null,
+          actor: {},
+          tags: null,
+          spans: [],
+        }),
+      },
+      organization: { findUnique: jest.fn().mockResolvedValue({ planTier: 'starter' }) },
+    };
+
+    const moduleRef = await Test.createTestingModule({
+      providers: [
+        TraceDetailService,
+        TenantContextService,
+        {
+          provide: PayloadHydrationService,
+          useValue: { createRequestCache: () => new Map(), hydrateMany: jest.fn() },
+        },
+        { provide: PrismaService, useValue: prisma },
+      ],
+    }).compile();
+
+    const detail = moduleRef.get(TraceDetailService);
+    const tenantContext = moduleRef.get(TenantContextService);
+
+    await expect(
+      tenantContext.run(
+        {
+          authMethod: 'api_key',
+          organizationId: 'org-1',
+          projectId: 'proj-1',
+          scopes: ['trace:read'],
+        },
+        () => detail.getDetail('tr_old'),
+      ),
+    ).rejects.toBeInstanceOf(NotFoundException);
   });
 });
 
