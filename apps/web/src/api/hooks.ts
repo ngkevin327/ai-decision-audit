@@ -1,6 +1,8 @@
 import { useAuth } from '@clerk/clerk-react';
+import { useQuery } from '@tanstack/react-query';
 import { useCallback, useMemo } from 'react';
 import { apiFetch } from './client';
+import { fetchReplay, fetchTraceDetail, fetchTraces, type TraceSearchParams } from './traces';
 
 export interface Project {
   id: string;
@@ -20,7 +22,10 @@ export interface ApiKeySummary {
 
 export function useApiContext() {
   const { userId, getToken } = useAuth();
-  const orgId = import.meta.env.VITE_DEFAULT_ORG_ID ?? '';
+  const orgId =
+    (typeof localStorage !== 'undefined' ? localStorage.getItem('defaultOrgId') : null) ??
+    import.meta.env.VITE_DEFAULT_ORG_ID ??
+    '';
 
   const context = useMemo(
     () => ({
@@ -88,4 +93,48 @@ export function useApiKeys() {
   );
 
   return { list, create };
+}
+
+export function useTraceSearch(params: TraceSearchParams) {
+  const { request } = useApiContext();
+  return useQuery({
+    queryKey: ['traces', params],
+    queryFn: () => fetchTraces(request, params),
+    enabled: Boolean(params.project_id),
+  });
+}
+
+export function useTraceDetail(traceId: string | undefined) {
+  const { request } = useApiContext();
+  return useQuery({
+    queryKey: ['trace', traceId],
+    queryFn: () => fetchTraceDetail(request, traceId!),
+    enabled: Boolean(traceId),
+  });
+}
+
+export function useReplay(traceId: string | undefined) {
+  const { request } = useApiContext();
+  return useQuery({
+    queryKey: ['replay', traceId],
+    queryFn: () => fetchReplay(request, traceId!),
+    enabled: Boolean(traceId),
+  });
+}
+
+export const PROJECT_STORAGE_KEY = 'selectedProjectId';
+export const ENVIRONMENT_STORAGE_KEY = 'selectedEnvironmentId';
+
+export function useSelectedProject() {
+  const projectId =
+    typeof localStorage !== 'undefined'
+      ? (localStorage.getItem(PROJECT_STORAGE_KEY) ?? undefined)
+      : undefined;
+
+  const setProjectId = useCallback((id: string) => {
+    localStorage.setItem(PROJECT_STORAGE_KEY, id);
+    window.dispatchEvent(new Event('project-changed'));
+  }, []);
+
+  return { projectId, setProjectId };
 }
