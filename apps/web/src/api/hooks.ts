@@ -1,6 +1,6 @@
 import { useAuth } from '@clerk/clerk-react';
 import { useQuery } from '@tanstack/react-query';
-import { useCallback, useMemo } from 'react';
+import { useCallback, useEffect, useMemo, useState } from 'react';
 import { apiFetch } from './client';
 import { fetchReplay, fetchTraceDetail, fetchTraces, type TraceSearchParams } from './traces';
 
@@ -126,13 +126,22 @@ export const PROJECT_STORAGE_KEY = 'selectedProjectId';
 export const ENVIRONMENT_STORAGE_KEY = 'selectedEnvironmentId';
 
 export function useSelectedProject() {
-  const projectId =
+  const readProject = () =>
     typeof localStorage !== 'undefined'
       ? (localStorage.getItem(PROJECT_STORAGE_KEY) ?? undefined)
       : undefined;
 
+  const [projectId, setProjectIdState] = useState<string | undefined>(readProject);
+
+  useEffect(() => {
+    const onChange = () => setProjectIdState(readProject());
+    window.addEventListener('project-changed', onChange);
+    return () => window.removeEventListener('project-changed', onChange);
+  }, []);
+
   const setProjectId = useCallback((id: string) => {
     localStorage.setItem(PROJECT_STORAGE_KEY, id);
+    setProjectIdState(id);
     window.dispatchEvent(new Event('project-changed'));
   }, []);
 
