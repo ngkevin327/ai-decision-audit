@@ -1,4 +1,5 @@
 import { NavLink, Outlet } from 'react-router-dom';
+import { ProjectSwitcher } from '../components/ProjectSwitcher';
 import { cn } from '../lib/utils';
 
 const navItems = [
@@ -40,7 +41,9 @@ export function AppLayout() {
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
         <header className="flex h-14 items-center border-b border-border bg-card px-6">
-          <div id="app-header-slot" className="flex w-full items-center justify-between gap-4" />
+          <div id="app-header-slot" className="flex w-full items-center justify-between gap-4">
+            <ProjectSwitcher />
+          </div>
         </header>
         <main className="flex-1 overflow-auto p-6">
           <Outlet />
