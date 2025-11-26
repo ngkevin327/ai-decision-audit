@@ -75,6 +75,7 @@ export function TraceTable({ traces, onLoadMore, hasMore }: TraceTableProps) {
               onKeyDown={(event) => onRowKeyDown(event, index, trace.trace_id)}
               onFocus={() => setFocusedIndex(index)}
               aria-selected={focusedIndex === index}
+              role="row"
             >
               <TableCell className="font-mono text-xs">{trace.trace_id}</TableCell>
               <TableCell>{trace.workflow_name}</TableCell>
