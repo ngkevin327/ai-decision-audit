@@ -1,18 +1,15 @@
 import { Route, Routes } from 'react-router-dom';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AppLayout } from './layouts/AppLayout';
+import { DashboardPage } from './pages/DashboardPage';
 import { SignInPage } from './pages/SignInPage';
+import { ExportsPage } from './pages/exports/ExportsPage';
 import { OnboardingPage } from './pages/onboarding/OnboardingPage';
 import { ApiKeysPage } from './pages/settings/ApiKeysPage';
 import { ProjectsPage } from './pages/settings/ProjectsPage';
-
-function PlaceholderPage({ title }: { title: string }) {
-  return (
-    <section>
-      <h1 className="text-lg font-semibold">{title}</h1>
-    </section>
-  );
-}
+import { ReplayPage } from './pages/traces/ReplayPage';
+import { TraceDetailPage } from './pages/traces/TraceDetailPage';
+import { TraceExplorerPage } from './pages/traces/TraceExplorerPage';
 
 export function AppRoutes() {
   return (
@@ -26,9 +23,11 @@ export function AppRoutes() {
           </ProtectedRoute>
         }
       >
-        <Route index element={<PlaceholderPage title="Dashboard" />} />
-        <Route path="traces" element={<PlaceholderPage title="Traces" />} />
-        <Route path="exports" element={<PlaceholderPage title="Exports" />} />
+        <Route index element={<DashboardPage />} />
+        <Route path="traces" element={<TraceExplorerPage />} />
+        <Route path="traces/:traceId" element={<TraceDetailPage />} />
+        <Route path="traces/:traceId/replay" element={<ReplayPage />} />
+        <Route path="exports" element={<ExportsPage />} />
         <Route path="settings/projects" element={<ProjectsPage />} />
         <Route path="settings/api-keys" element={<ApiKeysPage />} />
       </Route>
