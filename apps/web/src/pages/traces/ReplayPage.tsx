@@ -50,7 +50,7 @@ export function ReplayPage() {
   const step = data.steps[index];
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-6xl space-y-4">
       <div className="flex items-center justify-between gap-4">
         <div>
           <h1 className="text-lg font-semibold">Replay: {data.trace_id}</h1>

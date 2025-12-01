@@ -40,7 +40,7 @@ export function TraceExplorerPage() {
   }
 
   return (
-    <div className="space-y-4">
+    <div className="mx-auto max-w-6xl space-y-4">
       <div>
         <h1 className="text-xl font-semibold">Trace explorer</h1>
         <p className="text-sm text-muted-foreground">

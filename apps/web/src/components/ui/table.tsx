@@ -1,4 +1,4 @@
-import { HTMLAttributes, TableHTMLAttributes } from 'react';
+import { forwardRef, HTMLAttributes, TableHTMLAttributes } from 'react';
 import { cn } from '../../lib/utils';
 
 export function Table({ className, ...props }: TableHTMLAttributes<HTMLTableElement>) {
@@ -17,14 +17,16 @@ export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSecti
   return <tbody className={cn('[&_tr:last-child]:border-0', className)} {...props} />;
 }
 
-export function TableRow({ className, ...props }: HTMLAttributes<HTMLTableRowElement>) {
-  return (
+export const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTableRowElement>>(
+  ({ className, ...props }, ref) => (
     <tr
+      ref={ref}
       className={cn('border-b border-border transition-colors hover:bg-muted/40', className)}
       {...props}
     />
-  );
-}
+  ),
+);
+TableRow.displayName = 'TableRow';
 
 export function TableHead({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
   return (
