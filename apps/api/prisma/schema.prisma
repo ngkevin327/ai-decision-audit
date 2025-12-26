@@ -41,6 +41,13 @@ enum EventType {
   custom
 }
 
+enum ExportJobStatus {
+  pending
+  processing
+  completed
+  failed
+}
+
 model Organization {
   id        String   @id @default(uuid()) @db.Uuid
   name      String
@@ -56,6 +63,7 @@ model Organization {
   traces              Trace[]
   ingestIdempotency   IngestIdempotency[]
   indexJobDlq         IndexJobDlq[]
+  exportJobs          ExportJob[]
 
   @@map("organizations")
 }
@@ -288,4 +296,28 @@ model IngestIdempotency {
 
   @@unique([organizationId, idempotencyKey])
   @@map("ingest_idempotency")
+}
+
+model ExportJob {
+  id                  String          @id @default(uuid()) @db.Uuid
+  organizationId      String          @map("organization_id") @db.Uuid
+  projectId           String?         @map("project_id") @db.Uuid
+  requestedByUserId   String?         @map("requested_by_user_id") @db.Uuid
+  status              ExportJobStatus @default(pending)
+  format              String          @default("zip")
+  filters             Json
+  artifactKey         String?         @map("artifact_key")
+  manifestHash        String?         @map("manifest_hash")
+  chainHash           String?         @map("chain_hash")
+  traceCount          Int             @default(0) @map("trace_count")
+  errorMessage        String?         @map("error_message")
+  downloadExpiresAt   DateTime?       @map("download_expires_at")
+  completedAt         DateTime?       @map("completed_at")
+  createdAt           DateTime        @default(now()) @map("created_at")
+  updatedAt           DateTime        @updatedAt @map("updated_at")
+
+  organization Organization @relation(fields: [organizationId], references: [id], onDelete: Cascade)
+
+  @@index([organizationId, status, createdAt])
+  @@map("export_jobs")
 }
