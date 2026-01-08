@@ -1,3 +1,4 @@
+import { useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useTraceDetail } from '../../api/hooks';
 import { ErrorState } from '../../components/ErrorState';
@@ -5,11 +6,13 @@ import { LoadingState } from '../../components/LoadingState';
 import { PermissionSnapshotPanel } from '../../components/PermissionSnapshotPanel';
 import { Badge } from '../../components/ui/badge';
 import { EventTimeline } from './EventTimeline';
+import { ExportDialog } from './ExportDialog';
 
 export function TraceDetailPage() {
   const { traceId } = useParams<{ traceId: string }>();
   const [searchParams] = useSearchParams();
   const highlightEventId = searchParams.get('event_id') ?? undefined;
+  const [exportOpen, setExportOpen] = useState(false);
   const { data, isLoading, error } = useTraceDetail(traceId);
 
   if (isLoading) return <LoadingState label="Loading trace detail" />;
@@ -25,6 +28,13 @@ export function TraceDetailPage() {
         </div>
         <div className="flex items-center gap-2">
           <Badge>{data.status}</Badge>
+          <button
+            type="button"
+            onClick={() => setExportOpen(true)}
+            className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent"
+          >
+            Export
+          </button>
           <Link
             to={`/traces/${data.trace_id}/replay`}
             className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm font-medium hover:bg-accent"
@@ -41,6 +51,12 @@ export function TraceDetailPage() {
         </div>
         <PermissionSnapshotPanel snapshot={data.permission_snapshot} />
       </div>
+
+      <ExportDialog
+        traceId={data.trace_id}
+        open={exportOpen}
+        onClose={() => setExportOpen(false)}
+      />
     </div>
   );
 }
