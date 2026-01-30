@@ -1,16 +1,43 @@
 openapi: 3.1.0
 info:
-  title: AI Audit Trail Control Plane API
+  title: AI Audit Trail API
   version: 0.1.0
-  description: Organizations, projects, API keys, and membership management.
+  description: |
+    MVP API for trace ingest, forensic query/replay, audit exports, and control plane management.
+    Authenticate with `X-Api-Key` for ingest/query or session headers (`X-User-Id`, `X-Organization-Id`) for the web UI.
 
 servers:
   - url: http://localhost:3000
+    description: Local development
+  - url: https://api.staging.example.com
+    description: Staging (replace with your deployment host)
+
+tags:
+  - name: Health
+  - name: Onboarding
+  - name: Control Plane
+  - name: Ingest
+  - name: Query
+  - name: Exports
+  - name: Quota
 
 paths:
+  /health:
+    get:
+      tags: [Health]
+      summary: Health check
+      responses:
+        '200':
+          description: Service healthy
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/HealthResponse'
+
   /public/organizations:
     post:
-      summary: Create organization (onboarding)
+      tags: [Onboarding]
+      summary: Create organization (public signup)
       requestBody:
         required: true
         content:
@@ -20,9 +47,42 @@ paths:
       responses:
         '201':
           description: Organization created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /public/onboarding:
+    post:
+      tags: [Onboarding]
+      summary: Complete onboarding signup
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/OnboardingSignup'
+      responses:
+        '201':
+          description: Organization and admin user created
+        '400':
+          $ref: '#/components/responses/BadRequest'
+
+  /organizations/{orgId}:
+    get:
+      tags: [Control Plane]
+      summary: Get organization
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Organization details
+        '404':
+          $ref: '#/components/responses/NotFound'
 
   /organizations/{orgId}/projects:
     get:
+      tags: [Control Plane]
       summary: List projects
       parameters:
         - $ref: '#/components/parameters/OrgId'
@@ -32,6 +92,7 @@ paths:
         '200':
           description: Project list
     post:
+      tags: [Control Plane]
       summary: Create project
       parameters:
         - $ref: '#/components/parameters/OrgId'
@@ -46,8 +107,35 @@ paths:
         '201':
           description: Project created
 
+  /organizations/{orgId}/projects/{projectId}:
+    get:
+      tags: [Control Plane]
+      summary: Get project
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/ProjectId'
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Project details
+
+  /organizations/{orgId}/projects/{projectId}/environments:
+    get:
+      tags: [Control Plane]
+      summary: List environments for project
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+        - $ref: '#/components/parameters/ProjectId'
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Environment list
+
   /organizations/{orgId}/api-keys:
     get:
+      tags: [Control Plane]
       summary: List API keys
       parameters:
         - $ref: '#/components/parameters/OrgId'
@@ -62,6 +150,7 @@ paths:
         '200':
           description: API key list
     post:
+      tags: [Control Plane]
       summary: Issue API key
       parameters:
         - $ref: '#/components/parameters/OrgId'
@@ -76,13 +165,39 @@ paths:
         '201':
           description: API key issued (plaintext returned once)
 
+  /organizations/{orgId}/members:
+    get:
+      tags: [Control Plane]
+      summary: List members
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      responses:
+        '200':
+          description: Member list
+
+  /organizations/{orgId}/members/invite:
+    post:
+      tags: [Control Plane]
+      summary: Invite member
+      parameters:
+        - $ref: '#/components/parameters/OrgId'
+      security:
+        - sessionAuth: []
+      responses:
+        '201':
+          description: Invitation created
+
   /v1/traces:
     get:
+      tags: [Query]
       summary: Search traces
       security:
         - apiKeyAuth: []
         - sessionAuth: []
       parameters:
+        - $ref: '#/components/parameters/OrgHeader'
         - name: project_id
           in: query
           schema:
@@ -135,11 +250,18 @@ paths:
             application/json:
               schema:
                 $ref: '#/components/schemas/TraceListResponse'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
+        '403':
+          $ref: '#/components/responses/Forbidden'
     post:
+      tags: [Ingest]
       summary: Ingest trace envelope
       security:
         - apiKeyAuth: []
       parameters:
+        - $ref: '#/components/parameters/OrgHeader'
+        - $ref: '#/components/parameters/ProjectHeader'
         - name: Idempotency-Key
           in: header
           schema:
@@ -158,21 +280,27 @@ paths:
               schema:
                 $ref: '#/components/schemas/IngestTraceResponse'
         '400':
-          description: Validation error
+          $ref: '#/components/responses/BadRequest'
         '409':
-          description: Duplicate event_id
+          $ref: '#/components/responses/Conflict'
         '413':
           description: Payload too large
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ApiError'
         '429':
-          description: Rate limited
+          $ref: '#/components/responses/TooManyRequests'
 
   /v1/traces/{id}:
     get:
+      tags: [Query]
       summary: Get trace detail with event timeline
       security:
         - apiKeyAuth: []
         - sessionAuth: []
       parameters:
+        - $ref: '#/components/parameters/OrgHeader'
         - name: id
           in: path
           required: true
@@ -186,15 +314,17 @@ paths:
               schema:
                 $ref: '#/components/schemas/TraceDetail'
         '404':
-          description: Trace not found
+          $ref: '#/components/responses/NotFound'
 
   /v1/traces/{id}/replay:
     get:
+      tags: [Query]
       summary: Get replay timeline
       security:
         - apiKeyAuth: []
         - sessionAuth: []
       parameters:
+        - $ref: '#/components/parameters/OrgHeader'
         - name: id
           in: path
           required: true
@@ -208,18 +338,118 @@ paths:
               schema:
                 $ref: '#/components/schemas/ReplayTimeline'
         '404':
-          description: Trace not found
+          $ref: '#/components/responses/NotFound'
 
-  /organizations/{orgId}/members/invite:
-    post:
-      summary: Invite member
-      parameters:
-        - $ref: '#/components/parameters/OrgId'
+  /v1/exports:
+    get:
+      tags: [Exports]
+      summary: List export jobs
       security:
+        - apiKeyAuth: []
         - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrgHeader'
       responses:
-        '201':
-          description: Invitation created
+        '200':
+          description: Export job list
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportListResponse'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+    post:
+      tags: [Exports]
+      summary: Create export job
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrgHeader'
+      requestBody:
+        required: true
+        content:
+          application/json:
+            schema:
+              $ref: '#/components/schemas/CreateExportRequest'
+      responses:
+        '202':
+          description: Export job accepted
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+        '403':
+          $ref: '#/components/responses/Forbidden'
+
+  /v1/exports/{exportId}:
+    get:
+      tags: [Exports]
+      summary: Get export job status
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrgHeader'
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Export job
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportJob'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/exports/{exportId}/download:
+    get:
+      tags: [Exports]
+      summary: Get signed download URL for completed export
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrgHeader'
+        - name: exportId
+          in: path
+          required: true
+          schema:
+            type: string
+            format: uuid
+      responses:
+        '200':
+          description: Signed download URL (24h expiry)
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/ExportDownloadResponse'
+        '404':
+          $ref: '#/components/responses/NotFound'
+
+  /v1/quota:
+    get:
+      tags: [Quota]
+      summary: Get monthly event quota usage
+      security:
+        - apiKeyAuth: []
+        - sessionAuth: []
+      parameters:
+        - $ref: '#/components/parameters/OrgHeader'
+      responses:
+        '200':
+          description: Quota usage snapshot
+          content:
+            application/json:
+              schema:
+                $ref: '#/components/schemas/QuotaUsage'
+        '401':
+          $ref: '#/components/responses/Unauthorized'
 
 components:
   securitySchemes:
@@ -227,6 +457,7 @@ components:
       type: apiKey
       in: header
       name: X-User-Id
+      description: Clerk session user id; also send X-Organization-Id
     apiKeyAuth:
       type: apiKey
       in: header
@@ -240,8 +471,112 @@ components:
       schema:
         type: string
         format: uuid
+    ProjectId:
+      name: projectId
+      in: path
+      required: true
+      schema:
+        type: string
+        format: uuid
+    OrgHeader:
+      name: X-Organization-Id
+      in: header
+      required: true
+      schema:
+        type: string
+        format: uuid
+    ProjectHeader:
+      name: X-Project-Id
+      in: header
+      schema:
+        type: string
+        format: uuid
+      description: Required for API key ingest when key is org-scoped
+
+  responses:
+    BadRequest:
+      description: Validation error
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ValidationError'
+    Unauthorized:
+      description: Missing or invalid authentication
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Forbidden:
+      description: Insufficient role or scope
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    NotFound:
+      description: Resource not found (includes retention-filtered traces)
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    Conflict:
+      description: Duplicate resource
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/ApiError'
+    TooManyRequests:
+      description: Rate limit or monthly quota exceeded
+      content:
+        application/json:
+          schema:
+            $ref: '#/components/schemas/QuotaExceededError'
 
   schemas:
+    ApiError:
+      type: object
+      required: [statusCode, message]
+      properties:
+        statusCode:
+          type: integer
+        message:
+          oneOf:
+            - type: string
+            - type: array
+              items:
+                type: string
+        error:
+          type: string
+
+    ValidationError:
+      allOf:
+        - $ref: '#/components/schemas/ApiError'
+        - type: object
+          properties:
+            error:
+              type: string
+              example: Bad Request
+
+    QuotaExceededError:
+      type: object
+      properties:
+        statusCode:
+          type: integer
+          example: 429
+        message:
+          type: string
+          example: Monthly event quota exceeded
+        quota:
+          $ref: '#/components/schemas/QuotaUsage'
+
+    HealthResponse:
+      type: object
+      properties:
+        status:
+          type: string
+          enum: [ok, degraded]
+        dependencies:
+          type: object
+
     CreateOrganization:
       type: object
       required: [name, slug]
@@ -251,6 +586,20 @@ components:
         slug:
           type: string
           pattern: '^[a-z0-9]+(?:-[a-z0-9]+)*$'
+
+    OnboardingSignup:
+      type: object
+      required: [organizationName, organizationSlug, email, displayName]
+      properties:
+        organizationName:
+          type: string
+        organizationSlug:
+          type: string
+        email:
+          type: string
+          format: email
+        displayName:
+          type: string
 
     CreateProject:
       type: object
@@ -277,7 +626,7 @@ components:
           type: array
           items:
             type: string
-            enum: [trace:ingest, trace:read, export:create]
+            enum: [trace:ingest, trace:read, export:create, admin]
 
     IngestTraceResponse:
       type: object
@@ -291,7 +640,94 @@ components:
 
     TraceIngestEnvelope:
       type: object
-      description: See packages/schema/schemas/v1/trace-envelope.schema.json
+      description: JSON Schema canonical definition in packages/schema/schemas/v1/trace-envelope.schema.json
+      required:
+        - schema_version
+        - trace_id
+        - workflow_name
+        - actor
+        - permission_snapshot
+        - started_at
+        - spans
+      properties:
+        schema_version:
+          type: string
+          const: '1.0'
+        trace_id:
+          type: string
+        workflow_name:
+          type: string
+        environment:
+          type: string
+          enum: [staging, production]
+        actor:
+          $ref: '#/components/schemas/Actor'
+        permission_snapshot:
+          $ref: '#/components/schemas/PermissionSnapshot'
+        started_at:
+          type: string
+          format: date-time
+        status:
+          type: string
+          enum: [in_progress, completed, failed, cancelled]
+        tags:
+          type: object
+          additionalProperties:
+            type: string
+        spans:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceSpan'
+
+    Actor:
+      type: object
+      required: [actor_id, actor_type]
+      properties:
+        actor_id:
+          type: string
+        actor_type:
+          type: string
+          enum: [user, service, agent, system]
+        display_name:
+          type: string
+        email:
+          type: string
+
+    TraceSpan:
+      type: object
+      required: [span_id, name, events]
+      properties:
+        span_id:
+          type: string
+        parent_span_id:
+          type: string
+        name:
+          type: string
+        events:
+          type: array
+          items:
+            $ref: '#/components/schemas/TraceEvent'
+
+    TraceEvent:
+      type: object
+      required: [schema_version, event_id, type, occurred_at, span_id]
+      properties:
+        schema_version:
+          type: string
+        event_id:
+          type: string
+        type:
+          type: string
+          enum: [prompt, completion, tool_call, retrieval, approval, custom]
+        occurred_at:
+          type: string
+          format: date-time
+        span_id:
+          type: string
+        payload:
+          type: object
+        metadata:
+          type: object
 
     TraceListResponse:
       type: object
@@ -340,6 +776,27 @@ components:
           type: string
         status:
           type: string
+        started_at:
+          type: string
+          format: date-time
+        received_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        sealed_at:
+          type: string
+          format: date-time
+          nullable: true
+        chain_hash:
+          type: string
+          nullable: true
+        actor:
+          type: object
+        tags:
+          type: object
         permission_snapshot:
           $ref: '#/components/schemas/PermissionSnapshot'
         events:
@@ -360,17 +817,41 @@ components:
           type: array
           items:
             type: string
+        resource_ids:
+          type: array
+          items:
+            type: string
+        denied_resources:
+          type: array
+          items:
+            type: string
+        captured_at:
+          type: string
+          format: date-time
 
     TraceEventTimelineItem:
       type: object
       properties:
         event_id:
           type: string
+        span_id:
+          type: string
+        span_name:
+          type: string
         type:
           type: string
         occurred_at:
           type: string
           format: date-time
+        sequence_index:
+          type: integer
+        content_hash:
+          type: string
+        chain_hash:
+          type: string
+        payload_ref:
+          type: string
+          nullable: true
         payload:
           type: object
           nullable: true
@@ -394,9 +875,127 @@ components:
       properties:
         event_id:
           type: string
+        type:
+          type: string
+        occurred_at:
+          type: string
+          format: date-time
+        span_id:
+          type: string
+        span_name:
+          type: string
+        payload:
+          type: object
+          nullable: true
         prev_event_id:
           type: string
           nullable: true
         next_event_id:
           type: string
           nullable: true
+
+    CreateExportRequest:
+      type: object
+      required: [filters]
+      properties:
+        filters:
+          type: object
+          properties:
+            project_id:
+              type: string
+              format: uuid
+            trace_ids:
+              type: array
+              items:
+                type: string
+            workflow_name:
+              type: string
+            started_after:
+              type: string
+              format: date-time
+            started_before:
+              type: string
+              format: date-time
+
+    ExportListResponse:
+      type: object
+      properties:
+        exports:
+          type: array
+          items:
+            $ref: '#/components/schemas/ExportJob'
+
+    ExportJob:
+      type: object
+      properties:
+        export_id:
+          type: string
+          format: uuid
+        status:
+          type: string
+          enum: [pending, processing, completed, failed]
+        trace_count:
+          type: integer
+        created_at:
+          type: string
+          format: date-time
+        completed_at:
+          type: string
+          format: date-time
+          nullable: true
+        download_expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        manifest_hash:
+          type: string
+          nullable: true
+        chain_hash:
+          type: string
+          nullable: true
+        error_message:
+          type: string
+          nullable: true
+
+    ExportDownloadResponse:
+      type: object
+      properties:
+        export_id:
+          type: string
+          format: uuid
+        download_url:
+          type: string
+          format: uri
+        expires_at:
+          type: string
+          format: date-time
+          nullable: true
+        manifest_hash:
+          type: string
+          nullable: true
+        chain_hash:
+          type: string
+          nullable: true
+
+    QuotaUsage:
+      type: object
+      properties:
+        plan_tier:
+          type: string
+          enum: [starter, growth, enterprise]
+        monthly_limit:
+          type: integer
+        events_used:
+          type: integer
+        percent_used:
+          type: number
+        warning_threshold:
+          type: boolean
+        limit_reached:
+          type: boolean
+        period_start:
+          type: string
+          format: date-time
+        period_end:
+          type: string
+          format: date-time
