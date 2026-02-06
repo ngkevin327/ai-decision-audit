@@ -1,0 +1,140 @@
+{
+  "info": {
+    "name": "AI Audit Trail MVP",
+    "description": "Generated from apps/api/openapi.yaml for partner integration testing.",
+    "schema": "https://schema.getpostman.com/json/collection/v2.1.0/collection.json"
+  },
+  "variable": [
+    { "key": "baseUrl", "value": "http://localhost:3000" },
+    { "key": "orgId", "value": "{{organizationId}}" },
+    { "key": "apiKey", "value": "at_your_key_here" },
+    { "key": "projectId", "value": "{{projectId}}" }
+  ],
+  "item": [
+    {
+      "name": "Health",
+      "item": [
+        {
+          "name": "Health check",
+          "request": {
+            "method": "GET",
+            "url": "{{baseUrl}}/health"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Ingest",
+      "item": [
+        {
+          "name": "Ingest trace",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "X-Project-Id", "value": "{{projectId}}" },
+              { "key": "Content-Type", "value": "application/json" },
+              { "key": "Idempotency-Key", "value": "idem-{{$timestamp}}" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"schema_version\": \"1.0\",\n  \"trace_id\": \"tr_postman_001\",\n  \"workflow_name\": \"support_refund\",\n  \"actor\": { \"actor_id\": \"user_1\", \"actor_type\": \"user\" },\n  \"permission_snapshot\": {\n    \"policy_version\": \"2026.05.1\",\n    \"roles\": [\"support_agent\"],\n    \"scopes\": [\"trace:ingest\"]\n  },\n  \"started_at\": \"2026-05-19T14:31:55Z\",\n  \"spans\": [\n    {\n      \"span_id\": \"span_root\",\n      \"name\": \"main\",\n      \"events\": [\n        {\n          \"schema_version\": \"1.0\",\n          \"event_id\": \"evt_postman_001\",\n          \"type\": \"prompt\",\n          \"occurred_at\": \"2026-05-19T14:31:58Z\",\n          \"span_id\": \"span_root\",\n          \"payload\": { \"messages\": [{ \"role\": \"user\", \"content\": \"hello\" }] }\n        }\n      ]\n    }\n  ]\n}"
+            },
+            "url": "{{baseUrl}}/v1/traces"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Query",
+      "item": [
+        {
+          "name": "Search traces",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "X-Organization-Id", "value": "{{orgId}}" }
+            ],
+            "url": {
+              "raw": "{{baseUrl}}/v1/traces?limit=20",
+              "host": ["{{baseUrl}}"],
+              "path": ["v1", "traces"],
+              "query": [{ "key": "limit", "value": "20" }]
+            }
+          }
+        },
+        {
+          "name": "Trace detail",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "X-Organization-Id", "value": "{{orgId}}" }
+            ],
+            "url": "{{baseUrl}}/v1/traces/tr_postman_001"
+          }
+        },
+        {
+          "name": "Replay timeline",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Api-Key", "value": "{{apiKey}}" },
+              { "key": "X-Organization-Id", "value": "{{orgId}}" }
+            ],
+            "url": "{{baseUrl}}/v1/traces/tr_postman_001/replay"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Exports",
+      "item": [
+        {
+          "name": "Create export",
+          "request": {
+            "method": "POST",
+            "header": [
+              { "key": "X-User-Id", "value": "dev_user" },
+              { "key": "X-Organization-Id", "value": "{{orgId}}" },
+              { "key": "Content-Type", "value": "application/json" }
+            ],
+            "body": {
+              "mode": "raw",
+              "raw": "{\n  \"filters\": { \"trace_ids\": [\"tr_postman_001\"] }\n}"
+            },
+            "url": "{{baseUrl}}/v1/exports"
+          }
+        },
+        {
+          "name": "List exports",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-User-Id", "value": "dev_user" },
+              { "key": "X-Organization-Id", "value": "{{orgId}}" }
+            ],
+            "url": "{{baseUrl}}/v1/exports"
+          }
+        }
+      ]
+    },
+    {
+      "name": "Quota",
+      "item": [
+        {
+          "name": "Quota usage",
+          "request": {
+            "method": "GET",
+            "header": [
+              { "key": "X-Organization-Id", "value": "{{orgId}}" },
+              { "key": "X-User-Id", "value": "dev_user" }
+            ],
+            "url": "{{baseUrl}}/v1/quota"
+          }
+        }
+      ]
+    }
+  ]
+}
