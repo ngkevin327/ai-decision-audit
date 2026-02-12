@@ -10,54 +10,74 @@ Git-like audit and replay for AI copilots in SaaS products. Captures prompts, re
 
 ## Architecture overview
 
-| Component | Role |
-|-----------|------|
-| `apps/api` | Ingest, query, control plane (NestJS) |
-| `apps/worker` | Indexing, export, retention jobs |
-| `apps/web` | Forensic trace explorer (React) |
-| `packages/schema` | Shared event types and JSON Schema |
-| `infra/terraform` | Staging and production infrastructure |
+| Component                      | Role                                             |
+| ------------------------------ | ------------------------------------------------ |
+| `apps/api`                     | Ingest, query, exports, control plane (NestJS)   |
+| `apps/worker`                  | Indexing, export packaging, retention compaction |
+| `apps/web`                     | Forensic trace explorer (React)                  |
+| `packages/schema`              | Shared event types and JSON Schema               |
+| `packages/sdk-node`            | `@audit-trail/sdk` npm package                   |
+| `packages/sdk-python`          | `audit-trail` PyPI package                       |
+| `examples/copilot-support-bot` | Reference SDK integration                        |
 
-Event flow: SDK/proxy ingest → queue → indexer → Postgres metadata + object storage payloads → query/replay APIs → web UI.
+Event flow: SDK → `POST /v1/traces` → Redis queue → indexer → Postgres + object storage → query/replay APIs → web UI.
 
 ## Requirements
 
 - Node.js 20 LTS (see `.nvmrc`)
 - pnpm 9+
-- Docker Desktop (local dependencies)
+- Docker Desktop (Postgres, Redis, MinIO)
 
-## Local development
+## Quickstart (≈30 minutes to first trace)
 
-1. Copy environment template: `cp .env.example .env`
-2. Start dependencies: `docker compose up -d`
-3. Install and migrate:
+### 1. Start dependencies
 
 ```bash
+cp .env.example .env
+docker compose up -d
 pnpm install
 pnpm db:generate
 pnpm db:migrate
 ```
 
-4. Run all apps: `pnpm dev`
+### 2. Run the stack
 
-| Service | Endpoint |
-|---------|----------|
-| API health | http://localhost:3000/health |
-| Web UI | http://localhost:5173 |
+```bash
+pnpm dev
+```
 
-See [docs/runbooks/local-dev.md](./docs/runbooks/local-dev.md) for troubleshooting and worker startup.
+| Service     | URL                                |
+| ----------- | ---------------------------------- |
+| API health  | http://localhost:3000/health       |
+| OpenAPI     | http://localhost:3000/openapi.yaml |
+| API docs UI | http://localhost:3000/docs         |
+| Web UI      | http://localhost:5173              |
 
-## Environment variables
+Wire OpenAPI in API bootstrap: `import { registerOpenApi } from './swagger'; registerOpenApi(app);` (see `apps/api/swagger.ts`).
 
-| Variable | Required | Description |
-|----------|----------|-------------|
-| `DATABASE_URL` | Yes | PostgreSQL connection string |
-| `REDIS_URL` | Yes | Redis URL for BullMQ |
-| `STORAGE_DRIVER` | No | `minio` (default) or `s3` |
-| `MINIO_*` | When local | MinIO endpoint and credentials |
-| `AWS_REGION`, `S3_BUCKET` | When `s3` | Staging/production blob storage |
+### 3. Ingest a trace (SDK)
 
-Full list: [.env.example](./.env.example)
+```bash
+export AUDIT_TRAIL_API_KEY=at_your_key
+export AUDIT_TRAIL_PROJECT_ID=your_project_uuid
+pnpm --filter copilot-support-bot start
+```
+
+Or use the refund demo scenario:
+
+```bash
+pnpm exec tsx examples/copilot-support-bot/src/scenarios/refund.ts
+```
+
+### 4. View in the UI
+
+Open http://localhost:5173, select your project, and search traces. Use **Exports** for auditor packages and **Billing** for quota usage.
+
+### 5. Seed demo data (optional)
+
+```bash
+pnpm exec tsx scripts/seed-demo-traces.ts
+```
 
 ## Build and test
 
@@ -67,16 +87,24 @@ pnpm lint
 pnpm test
 ```
 
-Integration tests use Postgres and Redis (see `.github/workflows/integration.yml`).
+Integration tests require Postgres and Redis (see `.github/workflows/integration.yml`).
+
+## Documentation
+
+| Doc                                                                    | Description          |
+| ---------------------------------------------------------------------- | -------------------- |
+| [docs/sdk/node-quickstart.md](./docs/sdk/node-quickstart.md)           | Node SDK             |
+| [docs/sdk/python-quickstart.md](./docs/sdk/python-quickstart.md)       | Python SDK           |
+| [docs/export-format.md](./docs/export-format.md)                       | Export ZIP layout    |
+| [docs/pricing-plans.md](./docs/pricing-plans.md)                       | Retention and quotas |
+| [docs/deployment/staging.md](./docs/deployment/staging.md)             | AWS staging deploy   |
+| [docs/api/postman-collection.json](./docs/api/postman-collection.json) | Postman collection   |
+| [docs/runbooks/on-call.md](./docs/runbooks/on-call.md)                 | Incident response    |
+
+## Environment variables
+
+See [.env.example](./.env.example) for `DATABASE_URL`, `REDIS_URL`, storage, Clerk, SendGrid, and `EXPORT_SIGNING_SECRET`.
 
 ## Deployment
 
-Staging infrastructure is defined under `infra/terraform`. Configure remote state (S3 + DynamoDB lock), then:
-
-```bash
-cd infra/environments/staging
-terraform init
-terraform plan -var-file=terraform.tfvars
-```
-
-Production uses the same modules with environment-specific variables and stricter network controls.
+Terraform modules live under `infra/environments/staging`. See [docs/deployment/staging.md](./docs/deployment/staging.md) for RDS, S3, and ECS rollout steps.
