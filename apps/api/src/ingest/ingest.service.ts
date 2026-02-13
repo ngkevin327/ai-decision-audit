@@ -63,27 +63,27 @@ export class IngestService {
     };
 
     try {
-      const events = [];
-      let sequenceIndex = 0;
-      for (const item of flatEvents) {
-        const offload = await this.payloadOffload.maybeOffload(
-          ctx.organizationId,
-          envelope.trace_id,
-          item.event.event_id,
-          item.event.payload,
-        );
-        events.push({
-          spanExternalId: item.spanExternalId,
-          externalEventId: item.event.event_id,
-          type: item.event.type as EventType,
-          occurredAt: new Date(item.event.occurred_at),
-          sequenceIndex,
-          contentHash: contentHashes[sequenceIndex],
-          chainHash: chainHashes[sequenceIndex],
-          payloadRef: offload.payloadRef,
-        });
-        sequenceIndex += 1;
-      }
+      const offloads = await Promise.all(
+        flatEvents.map((item) =>
+          this.payloadOffload.maybeOffload(
+            ctx.organizationId,
+            envelope.trace_id,
+            item.event.event_id,
+            item.event.payload,
+          ),
+        ),
+      );
+
+      const events = flatEvents.map((item, sequenceIndex) => ({
+        spanExternalId: item.spanExternalId,
+        externalEventId: item.event.event_id,
+        type: item.event.type as EventType,
+        occurredAt: new Date(item.event.occurred_at),
+        sequenceIndex,
+        contentHash: contentHashes[sequenceIndex],
+        chainHash: chainHashes[sequenceIndex],
+        payloadRef: offloads[sequenceIndex]?.payloadRef ?? null,
+      }));
 
       const trace = await this.tracesRepository.createFromIngest({
         organizationId: ctx.organizationId,
@@ -112,18 +112,23 @@ export class IngestService {
         received_at: serverReceivedAt.toISOString(),
       };
 
-      await this.publisher.publishIndexJob({
-        traceId: trace.id,
-        organizationId: ctx.organizationId,
-        projectId: ctx.projectId,
-        enqueuedAt: serverReceivedAt.toISOString(),
-      });
-
       if (idempotencyKey) {
         await this.idempotency.store(ctx.organizationId, idempotencyKey, trace.id, response);
       }
 
       this.metrics.recordAccepted();
+
+      void this.publisher
+        .publishIndexJob({
+          traceId: trace.id,
+          organizationId: ctx.organizationId,
+          projectId: ctx.projectId,
+          enqueuedAt: serverReceivedAt.toISOString(),
+        })
+        .catch(() => {
+          this.metrics.recordRejected();
+        });
+
       return response;
     } catch (error) {
       this.metrics.recordRejected();
