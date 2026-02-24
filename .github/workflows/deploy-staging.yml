@@ -1,0 +1,100 @@
+name: Deploy staging
+
+on:
+  workflow_dispatch:
+    inputs:
+      image_tag:
+        description: Container image tag (git SHA or semver)
+        required: true
+        default: latest
+  push:
+    branches: [main]
+    paths:
+      - 'apps/api/**'
+      - 'apps/worker/**'
+      - 'apps/web/**'
+      - 'infra/**'
+      - '.github/workflows/deploy-staging.yml'
+
+concurrency:
+  group: deploy-staging
+  cancel-in-progress: false
+
+jobs:
+  deploy:
+    runs-on: ubuntu-latest
+    environment: staging
+    steps:
+      - uses: actions/checkout@v4
+
+      - name: Configure AWS credentials
+        uses: aws-actions/configure-aws-credentials@v4
+        with:
+          aws-access-key-id: ${{ secrets.AWS_ACCESS_KEY_ID }}
+          aws-secret-access-key: ${{ secrets.AWS_SECRET_ACCESS_KEY }}
+          aws-region: ${{ vars.AWS_REGION || 'us-east-1' }}
+
+      - name: Login to Amazon ECR
+        id: ecr
+        uses: aws-actions/amazon-ecr-login@v2
+
+      - uses: pnpm/action-setup@v4
+        with:
+          version: 9
+
+      - uses: actions/setup-node@v4
+        with:
+          node-version-file: .nvmrc
+          cache: pnpm
+
+      - name: Install and build
+        run: |
+          pnpm install --frozen-lockfile || pnpm install
+          pnpm build
+
+      - name: Build and push API image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: audit-trail-api
+          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+        run: |
+          docker build -f docker/api.Dockerfile -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Build and push worker image
+        env:
+          ECR_REGISTRY: ${{ steps.ecr.outputs.registry }}
+          ECR_REPOSITORY: audit-trail-worker
+          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+        run: |
+          docker build -f docker/worker.Dockerfile -t "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG" .
+          docker push "$ECR_REGISTRY/$ECR_REPOSITORY:$IMAGE_TAG"
+
+      - name: Run database migrations
+        env:
+          DATABASE_URL: ${{ secrets.STAGING_DATABASE_URL }}
+        run: pnpm db:migrate
+
+      - name: Deploy ECS services
+        env:
+          ECS_CLUSTER: ${{ vars.STAGING_ECS_CLUSTER }}
+          ECS_SERVICE_API: ${{ vars.STAGING_ECS_SERVICE_API }}
+          ECS_SERVICE_WORKER: ${{ vars.STAGING_ECS_SERVICE_WORKER }}
+          IMAGE_TAG: ${{ inputs.image_tag || github.sha }}
+        run: |
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE_API" --force-new-deployment
+          aws ecs update-service --cluster "$ECS_CLUSTER" --service "$ECS_SERVICE_WORKER" --force-new-deployment
+          aws ecs wait services-stable --cluster "$ECS_CLUSTER" --services "$ECS_SERVICE_API" "$ECS_SERVICE_WORKER"
+
+      - name: Staging smoke tests
+        env:
+          STAGING_API_URL: ${{ vars.STAGING_API_URL }}
+          STAGING_INGEST_API_KEY: ${{ secrets.STAGING_INGEST_API_KEY }}
+        run: |
+          curl -fsS "$STAGING_API_URL/health"
+          curl -fsS "$STAGING_API_URL/openapi.yaml" | head -n 5
+          curl -fsS -X POST "$STAGING_API_URL/v1/traces" \
+            -H "Content-Type: application/json" \
+            -H "X-Api-Key: $STAGING_INGEST_API_KEY" \
+            -d '{"schema_version":"1.0","trace_id":"tr_smoke","workflow_name":"deploy","actor":{"actor_id":"ci","actor_type":"service"},"permission_snapshot":{"policy_version":"1","roles":["developer"],"scopes":["trace:ingest"]},"started_at":"2026-05-20T00:00:00.000Z","spans":[{"span_id":"s1","name":"smoke","events":[{"schema_version":"1.0","event_id":"e1","type":"custom","occurred_at":"2026-05-20T00:00:00.000Z","span_id":"s1","payload":{}}]}]}' \
+            | grep -q trace_id
