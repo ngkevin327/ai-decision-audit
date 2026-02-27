@@ -4,11 +4,13 @@ import { NotFoundObfuscationFilter } from './common/filters/not-found-obfuscatio
 import { ValidationExceptionFilter } from './common/filters/validation-exception.filter';
 import { AppModule } from './app.module';
 import { AppConfigService } from './config/config.service';
+import { registerOpenApi } from '../swagger';
 
 async function bootstrap() {
   const app = await NestFactory.create(AppModule);
   app.useGlobalPipes(new ValidationPipe({ whitelist: true, transform: true }));
   app.useGlobalFilters(new NotFoundObfuscationFilter(), new ValidationExceptionFilter());
+  registerOpenApi(app);
   const config = app.get(AppConfigService);
   await app.listen(config.port);
 }

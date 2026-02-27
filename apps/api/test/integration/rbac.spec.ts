@@ -2,7 +2,7 @@ import { ExecutionContext, ForbiddenException } from '@nestjs/common';
 import { Reflector } from '@nestjs/core';
 import { Role } from '@prisma/client';
 import { RolesGuard } from '../../src/auth/roles.guard';
-import { ROLES_KEY } from '../../src/auth/permissions.decorator';
+import { ROLES_KEY, SCOPES_KEY } from '../../src/auth/permissions.decorator';
 import { TenantContextService } from '../../src/common/tenant/tenant-context.service';
 import { ROLE_PERMISSIONS } from '../../src/auth/permission.constants';
 
@@ -55,7 +55,7 @@ describe('RBAC matrix', () => {
 
   it('allows API keys with required scopes', () => {
     jest.spyOn(reflector, 'getAllAndOverride').mockImplementation((key) => {
-      if (key === 'scopes') return ['trace:ingest'];
+      if (key === SCOPES_KEY) return ['trace:ingest'];
       return undefined;
     });
 

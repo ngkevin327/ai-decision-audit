@@ -6,6 +6,7 @@ import { SignInPage } from './pages/SignInPage';
 import { ExportsPage } from './pages/exports/ExportsPage';
 import { OnboardingPage } from './pages/onboarding/OnboardingPage';
 import { ApiKeysPage } from './pages/settings/ApiKeysPage';
+import { BillingPage } from './pages/settings/BillingPage';
 import { ProjectsPage } from './pages/settings/ProjectsPage';
 import { ReplayPage } from './pages/traces/ReplayPage';
 import { TraceDetailPage } from './pages/traces/TraceDetailPage';
@@ -30,6 +31,7 @@ export function AppRoutes() {
         <Route path="exports" element={<ExportsPage />} />
         <Route path="settings/projects" element={<ProjectsPage />} />
         <Route path="settings/api-keys" element={<ApiKeysPage />} />
+        <Route path="settings/billing" element={<BillingPage />} />
       </Route>
     </Routes>
   );

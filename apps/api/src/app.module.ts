@@ -13,12 +13,15 @@ import { IngestModule } from './ingest/ingest.module';
 import { QueryModule } from './query/query.module';
 import { MetricsModule } from './metrics/metrics.module';
 import { TracesModule } from './traces/traces.module';
+import { ExportsModule } from './exports/exports.controller';
+import { ExportDownloadModule } from './exports/download.controller';
 import { ValidationModule } from './validation/validation.module';
 import { OrganizationsModule } from './organizations/organizations.module';
 import { ProjectsModule } from './projects/projects.module';
 import { PrismaModule } from './prisma/prisma.module';
 import { QueueModule } from './queue/queue.module';
 import { StorageModule } from './storage/storage.module';
+import { QuotaModule } from './quotas/middleware';
 
 @Module({
   imports: [
@@ -38,6 +41,9 @@ import { StorageModule } from './storage/storage.module';
     IngestModule,
     QueryModule,
     TracesModule,
+    ExportsModule,
+    ExportDownloadModule,
+    QuotaModule,
     HealthModule,
   ],
 })

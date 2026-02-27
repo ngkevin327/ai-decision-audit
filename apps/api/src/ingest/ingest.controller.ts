@@ -7,7 +7,7 @@ import { IngestService } from './ingest.service';
 @Controller('v1/traces')
 @UseGuards(TenantGuard, IngestAuthGuard)
 export class IngestController {
-  constructor(private readonly ingest: IngestService) {}
+  constructor(private readonly ingestService: IngestService) {}
 
   @Post()
   @HttpCode(202)
@@ -15,6 +15,6 @@ export class IngestController {
     @Body() body: unknown,
     @Headers('idempotency-key') idempotencyKey?: string,
   ): Promise<IngestTraceResponseDto> {
-    return this.ingest.acceptTrace(body, idempotencyKey);
+    return this.ingestService.acceptTrace(body, idempotencyKey);
   }
 }

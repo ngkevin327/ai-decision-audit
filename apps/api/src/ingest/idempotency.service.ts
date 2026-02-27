@@ -31,7 +31,7 @@ export class IdempotencyService {
         organizationId,
         idempotencyKey,
         traceId,
-        response,
+        response: response as unknown as Prisma.InputJsonValue,
       },
     });
   }

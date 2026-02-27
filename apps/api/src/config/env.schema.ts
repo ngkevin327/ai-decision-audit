@@ -17,6 +17,8 @@ export const envSchema = z.object({
   MINIO_BUCKET: z.string().default('audit-payloads'),
   AWS_REGION: z.string().optional(),
   S3_BUCKET: z.string().optional(),
+  CLERK_PUBLISHABLE_KEY: z.string().optional(),
+  CLERK_SECRET_KEY: z.string().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;

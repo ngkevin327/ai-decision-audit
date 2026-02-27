@@ -1,12 +1,14 @@
 import { NavLink, Outlet } from 'react-router-dom';
 import { ProjectSwitcher } from '../components/ProjectSwitcher';
+import { QuotaBanner } from '../components/QuotaBanner';
 import { cn } from '../lib/utils';
 
 const navItems = [
   { to: '/', label: 'Dashboard', end: true },
   { to: '/traces', label: 'Traces' },
   { to: '/exports', label: 'Exports' },
-  { to: '/settings/projects', label: 'Settings' },
+  { to: '/settings/projects', label: 'Projects' },
+  { to: '/settings/billing', label: 'Billing' },
 ];
 
 export function AppLayout() {
@@ -40,6 +42,7 @@ export function AppLayout() {
         </nav>
       </aside>
       <div className="flex min-w-0 flex-1 flex-col">
+        <QuotaBanner />
         <header className="flex h-14 items-center border-b border-border bg-card px-6">
           <div id="app-header-slot" className="flex w-full items-center justify-between gap-4">
             <ProjectSwitcher />

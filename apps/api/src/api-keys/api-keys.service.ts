@@ -9,6 +9,7 @@ export interface CreatedApiKeyResult {
   id: string;
   name: string;
   keyPrefix: string;
+  projectId: string;
   scopes: string[];
   plaintextKey: string;
   createdAt: Date;
@@ -51,6 +52,7 @@ export class ApiKeysService {
       id: record.id,
       name: record.name,
       keyPrefix: record.keyPrefix,
+      projectId: record.projectId,
       scopes: record.scopes,
       plaintextKey,
       createdAt: record.createdAt,
@@ -109,9 +111,5 @@ export class ApiKeysService {
   private generateKey(): string {
     const suffix = randomBytes(24).toString('base64url');
     return `at_live_${suffix}`;
-  }
-
-  static hashForLookup(rawKey: string): string {
-    return createHash('sha256').update(rawKey).digest('hex');
   }
 }
