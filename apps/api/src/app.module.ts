@@ -51,6 +51,7 @@ export class AppModule implements NestModule {
   configure(consumer: MiddlewareConsumer) {
     consumer
       .apply(BodySizeLimitMiddleware, RateLimitMiddleware, TenantContextMiddleware)
+      .exclude('health', 'health/(.*)', 'openapi.yaml', 'docs', 'metrics')
       .forRoutes('*');
   }
 }

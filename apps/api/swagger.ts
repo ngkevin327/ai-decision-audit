@@ -1,15 +1,22 @@
-import { readFileSync } from 'node:fs';
+import { existsSync, readFileSync } from 'node:fs';
 import { join } from 'node:path';
 import type { INestApplication } from '@nestjs/common';
 
-const SPEC_PATH = join(__dirname, 'openapi.yaml');
+function resolveOpenApiPath(): string {
+  const candidates = [join(__dirname, 'openapi.yaml'), join(__dirname, '..', 'openapi.yaml')];
+  const found = candidates.find((path) => existsSync(path));
+  if (!found) {
+    throw new Error(`openapi.yaml not found (checked: ${candidates.join(', ')})`);
+  }
+  return found;
+}
 
 /**
  * Serves the OpenAPI 3.1 document and a minimal Swagger UI page for local/staging use.
  * Call from `main.ts` after `NestFactory.create`: `registerOpenApi(app)`.
  */
 export function registerOpenApi(app: INestApplication): void {
-  const spec = readFileSync(SPEC_PATH, 'utf8');
+  const spec = readFileSync(resolveOpenApiPath(), 'utf8');
   const http = app.getHttpAdapter().getInstance() as {
     get: (path: string, handler: (req: unknown, res: ResponseLike) => void) => void;
   };

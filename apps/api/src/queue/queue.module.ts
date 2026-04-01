@@ -1,8 +1,10 @@
 import { Module } from '@nestjs/common';
+import { AppConfigModule } from '../config/config.module';
 import { BullmqQueueService } from './bullmq.queue';
 import { QUEUE_SERVICE } from './queue.interface';
 
 @Module({
+  imports: [AppConfigModule],
   providers: [
     BullmqQueueService,
     {

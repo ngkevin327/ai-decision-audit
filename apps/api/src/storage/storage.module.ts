@@ -1,10 +1,12 @@
 import { Module } from '@nestjs/common';
+import { AppConfigModule } from '../config/config.module';
 import { AppConfigService } from '../config/config.service';
 import { MinioStorageService } from './minio.storage';
 import { S3StorageService } from './s3.storage';
 import { STORAGE_SERVICE } from './storage.interface';
 
 @Module({
+  imports: [AppConfigModule],
   providers: [
     MinioStorageService,
     S3StorageService,

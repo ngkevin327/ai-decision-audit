@@ -7,10 +7,12 @@ import { PayloadOffloadService } from './payload-offload.service';
 import { PermissionSnapshotHandler } from './permission-snapshot.handler';
 import { IngestAuthGuard } from './guards/ingest-auth.guard';
 import { SpanTreeValidator } from './span-tree.validator';
+import { QueueModule } from '../queue/queue.module';
+import { StorageModule } from '../storage/storage.module';
 import { TracesModule } from '../traces/traces.module';
 
 @Module({
-  imports: [TracesModule],
+  imports: [TracesModule, StorageModule, QueueModule],
   controllers: [IngestController],
   providers: [
     IngestService,

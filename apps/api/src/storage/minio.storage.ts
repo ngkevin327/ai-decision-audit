@@ -21,19 +21,22 @@ export class MinioStorageService implements StorageService, OnModuleInit {
 
     const exists = await this.client.bucketExists(env.MINIO_BUCKET);
     if (!exists) {
-      await this.client.makeBucket(env.MINIO_BUCKET);
+      try {
+        await this.client.makeBucket(env.MINIO_BUCKET);
+      } catch (error) {
+        const code = (error as { code?: string })?.code;
+        if (code !== 'BucketAlreadyOwnedByYou' && code !== 'BucketAlreadyExists') {
+          throw error;
+        }
+      }
     }
   }
 
   async put(input: PutObjectInput): Promise<void> {
     const body = typeof input.body === 'string' ? Buffer.from(input.body) : input.body;
-    await this.client.putObject(
-      this.config.env.MINIO_BUCKET,
-      input.key,
-      body,
-      body.length,
-      { 'Content-Type': input.contentType ?? 'application/octet-stream' },
-    );
+    await this.client.putObject(this.config.env.MINIO_BUCKET, input.key, body, body.length, {
+      'Content-Type': input.contentType ?? 'application/octet-stream',
+    });
   }
 
   async get(key: string): Promise<StorageObject> {
@@ -46,10 +49,6 @@ export class MinioStorageService implements StorageService, OnModuleInit {
   }
 
   async signedUrl(key: string, expiresInSeconds = 3600): Promise<string> {
-    return this.client.presignedGetObject(
-      this.config.env.MINIO_BUCKET,
-      key,
-      expiresInSeconds,
-    );
+    return this.client.presignedGetObject(this.config.env.MINIO_BUCKET, key, expiresInSeconds);
   }
 }
