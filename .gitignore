@@ -5,6 +5,8 @@ build/
 .env
 .env.local
 .env.*.local
+scripts/.local-dev-credentials.json
+apps/web/.env.local
 *.log
 coverage/
 .DS_Store
