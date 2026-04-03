@@ -33,11 +33,7 @@ Event flow: SDK → `POST /v1/traces` → Redis queue → indexer → Postgres +
 ### 1. Start dependencies
 
 ```bash
-cp .env.example .env
-docker compose up -d
-pnpm install
-pnpm db:generate
-pnpm db:migrate
+pnpm setup:local
 ```
 
 ### 2. Run the stack
@@ -48,9 +44,9 @@ pnpm dev
 
 | Service     | URL                                |
 | ----------- | ---------------------------------- |
-| API health  | http://localhost:3000/health       |
-| OpenAPI     | http://localhost:3000/openapi.yaml |
-| API docs UI | http://localhost:3000/docs         |
+| API health  | http://localhost:3100/health       |
+| OpenAPI     | http://localhost:3100/openapi.yaml |
+| API docs UI | http://localhost:3100/docs         |
 | Web UI      | http://localhost:5173              |
 
 Wire OpenAPI in API bootstrap: `import { registerOpenApi } from './swagger'; registerOpenApi(app);` (see `apps/api/swagger.ts`).
