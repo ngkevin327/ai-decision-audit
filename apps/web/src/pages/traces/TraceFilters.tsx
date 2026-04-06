@@ -1,3 +1,4 @@
+import { Filter } from 'lucide-react';
 import { FormEvent } from 'react';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
@@ -23,36 +24,45 @@ export function TraceFilters({ value, onChange }: TraceFiltersProps) {
   }
 
   return (
-    <form
-      onSubmit={onSubmit}
-      className="grid gap-3 rounded-lg border border-border bg-card p-4 md:grid-cols-6"
-    >
-      <Input
-        name="q"
-        placeholder="Search workflow…"
-        defaultValue={value.q ?? ''}
-        className="md:col-span-2"
-      />
-      <Input
-        name="workflow_name"
-        placeholder="Workflow name"
-        defaultValue={value.workflow_name ?? ''}
-      />
-      <Input name="actor_id" placeholder="Actor ID" defaultValue={value.actor_id ?? ''} />
-      <Input name="model" placeholder="Model" defaultValue={value.model ?? ''} />
-      <select
-        name="status"
-        defaultValue={value.status ?? ''}
-        className="h-9 rounded-md border border-border bg-card px-3 text-sm"
-      >
-        <option value="">All statuses</option>
-        <option value="in_progress">In progress</option>
-        <option value="completed">Completed</option>
-        <option value="failed">Failed</option>
-        <option value="cancelled">Cancelled</option>
-      </select>
+    <form onSubmit={onSubmit} className="surface-card grid gap-4 p-5 md:grid-cols-6 md:items-end">
+      <div className="flex items-center gap-2 md:col-span-6">
+        <Filter className="h-4 w-4 text-primary" aria-hidden />
+        <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
+          Filters
+        </span>
+      </div>
+      <div className="md:col-span-2">
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Search</label>
+        <Input name="q" placeholder="Workflow, tags…" defaultValue={value.q ?? ''} />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Workflow</label>
+        <Input
+          name="workflow_name"
+          placeholder="e.g. support_refund"
+          defaultValue={value.workflow_name ?? ''}
+        />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Actor</label>
+        <Input name="actor_id" placeholder="Actor ID" defaultValue={value.actor_id ?? ''} />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Model</label>
+        <Input name="model" placeholder="gpt-4o" defaultValue={value.model ?? ''} />
+      </div>
+      <div>
+        <label className="mb-1.5 block text-xs font-medium text-muted-foreground">Status</label>
+        <select name="status" defaultValue={value.status ?? ''} className="select-field">
+          <option value="">All statuses</option>
+          <option value="in_progress">In progress</option>
+          <option value="completed">Completed</option>
+          <option value="failed">Failed</option>
+          <option value="cancelled">Cancelled</option>
+        </select>
+      </div>
       <Button type="submit" className="md:col-span-1">
-        Apply
+        Apply filters
       </Button>
     </form>
   );

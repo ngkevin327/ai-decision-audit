@@ -1,13 +1,14 @@
+import { Loader2 } from 'lucide-react';
+
 export function LoadingState({ label = 'Loading…' }: { label?: string }) {
   return (
     <div
-      className="animate-pulse space-y-3 rounded-lg border border-border bg-card p-6"
+      className="flex flex-col items-center justify-center gap-4 rounded-xl border border-border bg-card/60 px-8 py-12"
       role="status"
+      aria-live="polite"
     >
-      <div className="h-4 w-1/3 rounded bg-muted" />
-      <div className="h-3 w-full rounded bg-muted" />
-      <div className="h-3 w-5/6 rounded bg-muted" />
-      <p className="sr-only">{label}</p>
+      <Loader2 className="h-8 w-8 animate-spin text-primary" aria-hidden />
+      <p className="text-sm font-medium text-muted-foreground">{label}</p>
     </div>
   );
 }

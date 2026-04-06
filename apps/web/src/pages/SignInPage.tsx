@@ -1,20 +1,80 @@
 import { SignIn } from '@clerk/clerk-react';
+import { ArrowRight, Shield } from 'lucide-react';
+import { Link } from 'react-router-dom';
+import { Logo } from '../components/brand/Logo';
 
 export function SignInPage() {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
 
   if (!publishableKey) {
     return (
-      <section>
-        <h2>Sign in</h2>
-        <p>Set VITE_CLERK_PUBLISHABLE_KEY to enable Clerk authentication.</p>
-      </section>
+      <div className="flex min-h-screen">
+        <div className="hidden w-1/2 flex-col justify-between bg-sidebar p-12 lg:flex">
+          <Logo />
+          <div className="space-y-6">
+            <h1 className="text-4xl font-semibold leading-tight tracking-tight text-sidebar-foreground">
+              Forensic audit trails for production AI
+            </h1>
+            <p className="max-w-md text-lg leading-relaxed text-sidebar-muted">
+              Capture prompts, tool calls, and permission snapshots — then replay every copilot
+              decision your customers can question.
+            </p>
+            <ul className="space-y-3 text-sm text-sidebar-muted">
+              <li className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" aria-hidden />
+                Tamper-evident hash chains
+              </li>
+              <li className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" aria-hidden />
+                Multi-tenant RBAC
+              </li>
+              <li className="flex items-center gap-2">
+                <Shield className="h-4 w-4 text-primary" aria-hidden />
+                Auditor-ready exports
+              </li>
+            </ul>
+          </div>
+          <p className="text-xs text-sidebar-muted">© AI Audit Trail</p>
+        </div>
+        <div className="flex flex-1 flex-col items-center justify-center bg-mesh-gradient p-8">
+          <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-card-hover">
+            <div className="lg:hidden">
+              <Logo variant="light" />
+            </div>
+            <div className="space-y-2 text-center lg:text-left">
+              <h2 className="text-xl font-semibold">Local development</h2>
+              <p className="text-sm text-muted-foreground">
+                Clerk is not configured. Continue to the console without sign-in.
+              </p>
+            </div>
+            <Link
+              to="/"
+              className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground shadow-md shadow-primary/25 transition hover:bg-primary/90"
+            >
+              Enter forensic console
+              <ArrowRight className="h-4 w-4" aria-hidden />
+            </Link>
+            <p className="text-center text-xs text-muted-foreground">
+              Set{' '}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono">
+                VITE_CLERK_PUBLISHABLE_KEY
+              </code>{' '}
+              for production auth.
+            </p>
+          </div>
+        </div>
+      </div>
     );
   }
 
   return (
-    <section className="auth-panel">
-      <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
-    </section>
+    <div className="flex min-h-screen items-center justify-center bg-mesh-gradient p-6">
+      <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-card-hover">
+        <div className="mb-6 flex justify-center">
+          <Logo variant="light" />
+        </div>
+        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+      </div>
+    </div>
   );
 }

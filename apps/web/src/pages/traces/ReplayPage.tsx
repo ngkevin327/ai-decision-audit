@@ -1,9 +1,10 @@
 import { useEffect, useState } from 'react';
 import { Link, useParams, useSearchParams } from 'react-router-dom';
 import { useReplay } from '../../api/hooks';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { JsonViewer } from '../../components/JsonViewer';
 import { PermissionSnapshotPanel } from '../../components/PermissionSnapshotPanel';
-import { Badge } from '../../components/ui/badge';
+import { LoadingState } from '../../components/LoadingState';
 import { ReplayControls } from './ReplayControls';
 
 export function ReplayPage() {
@@ -41,25 +42,30 @@ export function ReplayPage() {
     setSearchParams({ event_id: step.event_id }, { replace: true });
   }, [index, data, setSearchParams]);
 
-  if (isLoading) return <p className="text-sm text-muted-foreground">Loading replay…</p>;
+  if (isLoading) return <LoadingState label="Loading replay timeline" />;
   if (error) return <p className="text-sm text-red-600">{error.message}</p>;
   if (!data || data.steps.length === 0) {
-    return <p className="text-sm text-muted-foreground">No replay steps available.</p>;
+    return (
+      <p className="text-sm text-muted-foreground">No replay steps available for this trace.</p>
+    );
   }
 
   const step = data.steps[index];
 
   return (
-    <div className="mx-auto max-w-6xl space-y-4">
-      <div className="flex items-center justify-between gap-4">
-        <div>
-          <h1 className="text-lg font-semibold">Replay: {data.trace_id}</h1>
-          <p className="text-sm text-muted-foreground">{data.workflow_name}</p>
-        </div>
-        <Link to={`/traces/${data.trace_id}`} className="text-sm text-primary hover:underline">
-          Back to detail
-        </Link>
-      </div>
+    <div className="page-container">
+      <PageHeader
+        title={`Replay · ${data.trace_id}`}
+        description={`${data.workflow_name} — step ${index + 1} of ${data.steps.length}. Use j/k to navigate.`}
+        actions={
+          <Link
+            to={`/traces/${data.trace_id}`}
+            className="text-sm font-medium text-primary hover:underline"
+          >
+            ← Back to detail
+          </Link>
+        }
+      />
 
       <ReplayControls
         index={index}
@@ -68,12 +74,14 @@ export function ReplayPage() {
         onNext={() => setIndex((i) => Math.min(i + 1, data.steps.length - 1))}
       />
 
-      <div className="grid gap-4 lg:grid-cols-3">
-        <div className="space-y-3 rounded-lg border border-primary/40 bg-primary/5 p-4 lg:col-span-2">
-          <div className="flex flex-wrap gap-2">
-            <Badge>{step.type}</Badge>
-            <span className="font-mono text-xs">{step.event_id}</span>
-            <span className="text-xs text-muted-foreground">
+      <div className="grid gap-6 lg:grid-cols-3">
+        <div className="space-y-4 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5 shadow-glow lg:col-span-2">
+          <div className="flex flex-wrap items-center gap-3">
+            <span className="inline-flex rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium capitalize text-primary">
+              {step.type.replace(/_/g, ' ')}
+            </span>
+            <span className="font-mono text-xs text-foreground">{step.event_id}</span>
+            <span className="text-xs tabular-nums text-muted-foreground">
               {new Date(step.occurred_at).toLocaleString()}
             </span>
           </div>

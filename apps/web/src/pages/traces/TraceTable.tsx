@@ -1,7 +1,7 @@
 import { KeyboardEvent, useRef, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import type { TraceListItem } from '../../api/traces';
-import { Badge } from '../../components/ui/badge';
+import { StatusBadge } from '../../components/ui/status-badge';
 import { Button } from '../../components/ui/button';
 import {
   Table,
@@ -51,7 +51,7 @@ export function TraceTable({ traces, onLoadMore, hasMore }: TraceTableProps) {
   }
 
   return (
-    <div className="space-y-3">
+    <div className="surface-card space-y-4 overflow-hidden p-1">
       <Table>
         <TableHeader>
           <TableRow>
@@ -70,7 +70,7 @@ export function TraceTable({ traces, onLoadMore, hasMore }: TraceTableProps) {
                 rowRefs.current[index] = el;
               }}
               tabIndex={0}
-              className="cursor-pointer focus:bg-muted/60 focus:outline focus:outline-2 focus:outline-primary"
+              className="cursor-pointer hover:bg-primary/5 focus:bg-primary/10 focus:outline focus:outline-2 focus:outline-primary"
               onClick={() => openTrace(trace.trace_id)}
               onKeyDown={(event) => onRowKeyDown(event, index, trace.trace_id)}
               onFocus={() => setFocusedIndex(index)}
@@ -80,7 +80,7 @@ export function TraceTable({ traces, onLoadMore, hasMore }: TraceTableProps) {
               <TableCell className="font-mono text-xs">{trace.trace_id}</TableCell>
               <TableCell>{trace.workflow_name}</TableCell>
               <TableCell>
-                <Badge>{trace.status}</Badge>
+                <StatusBadge status={trace.status} />
               </TableCell>
               <TableCell className="text-xs text-muted-foreground">
                 {new Date(trace.started_at).toLocaleString()}

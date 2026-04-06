@@ -1,7 +1,11 @@
+import { Activity, ArrowRight, FileSearch, FolderKanban, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { useTraceSearch, useSelectedProject } from '../api/hooks';
-import { Badge } from '../components/ui/badge';
-import { Card, CardContent, CardHeader, CardTitle } from '../components/ui/card';
+import { EmptyState } from '../components/layout/EmptyState';
+import { PageHeader } from '../components/layout/PageHeader';
+import { StatCard } from '../components/layout/StatCard';
+import { Button } from '../components/ui/button';
+import { StatusBadge } from '../components/ui/status-badge';
 import {
   Table,
   TableBody,
@@ -18,62 +22,83 @@ export function DashboardPage() {
     limit: 8,
   });
 
+  const traceCount = data?.traces.length ?? 0;
+  const completedCount = data?.traces.filter((t) => t.status === 'completed').length ?? 0;
+
   return (
-    <div className="mx-auto max-w-6xl space-y-6">
-      <div>
-        <h1 className="text-xl font-semibold">Dashboard</h1>
-        <p className="text-sm text-muted-foreground">
-          Recent traces and ingest health for the selected project.
-        </p>
-      </div>
+    <div className="page-container">
+      <PageHeader
+        title="Dashboard"
+        description="Monitor ingest health, review recent AI executions, and jump into forensic investigation."
+        actions={
+          <Link
+            to="/traces"
+            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md shadow-primary/20 transition hover:bg-primary/90"
+          >
+            Explore traces
+            <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
+          </Link>
+        }
+      />
 
       <div className="grid gap-4 md:grid-cols-3">
-        <Card>
-          <CardHeader>
-            <CardTitle>Ingest quota</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">—</p>
-            <p className="text-xs text-muted-foreground">Quota widget (Stage 10)</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Recent traces</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <p className="text-2xl font-semibold">{data?.traces.length ?? 0}</p>
-            <p className="text-xs text-muted-foreground">Loaded in this view</p>
-          </CardContent>
-        </Card>
-        <Card>
-          <CardHeader>
-            <CardTitle>Explorer</CardTitle>
-          </CardHeader>
-          <CardContent>
-            <Link to="/traces" className="text-sm font-medium text-primary hover:underline">
-              Open trace explorer →
-            </Link>
-          </CardContent>
-        </Card>
+        <StatCard
+          label="Traces loaded"
+          value={isLoading ? '—' : traceCount}
+          hint="Recent activity in this project"
+          icon={FileSearch}
+          trend={traceCount > 0 ? 'up' : undefined}
+        />
+        <StatCard
+          label="Completed"
+          value={isLoading ? '—' : completedCount}
+          hint="Sealed and indexed traces"
+          icon={Shield}
+        />
+        <StatCard
+          label="Pipeline"
+          value="Live"
+          hint="Ingest → index → explore"
+          icon={Activity}
+          trend="up"
+        />
       </div>
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Recent traces</CardTitle>
-        </CardHeader>
-        <CardContent>
+      <div className="surface-card overflow-hidden">
+        <div className="flex items-center justify-between border-b border-border px-5 py-4">
+          <div>
+            <h2 className="text-sm font-semibold">Recent traces</h2>
+            <p className="text-xs text-muted-foreground">Latest ingested workflows</p>
+          </div>
+          <Link to="/traces" className="text-xs font-medium text-primary hover:text-primary/80">
+            View all →
+          </Link>
+        </div>
+        <div className="p-5">
           {!projectId && (
-            <p className="text-sm text-muted-foreground">
-              Select a project in the header to load traces.
-            </p>
+            <EmptyState
+              icon={FolderKanban}
+              title="Select a project"
+              description="Choose a project in the header to load traces and start your forensic review."
+            />
           )}
-          {isLoading && <p className="text-sm text-muted-foreground">Loading traces…</p>}
-          {error && <p className="text-sm text-red-600">{error.message}</p>}
-          {data && data.traces.length === 0 && (
-            <p className="text-sm text-muted-foreground">
-              No traces yet. Ingest your first envelope via the SDK.
-            </p>
+          {projectId && isLoading && (
+            <p className="py-8 text-center text-sm text-muted-foreground">Loading traces…</p>
+          )}
+          {error && (
+            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{error.message}</p>
+          )}
+          {projectId && !isLoading && data && data.traces.length === 0 && (
+            <EmptyState
+              icon={FileSearch}
+              title="No traces yet"
+              description="Ingest your first copilot execution with the SDK or run pnpm seed:demo locally."
+              action={
+                <Button variant="outline" type="button">
+                  Run pnpm seed:demo
+                </Button>
+              }
+            />
           )}
           {data && data.traces.length > 0 && (
             <Table>
@@ -87,20 +112,20 @@ export function DashboardPage() {
               </TableHeader>
               <TableBody>
                 {data.traces.map((trace) => (
-                  <TableRow key={trace.trace_id}>
+                  <TableRow key={trace.trace_id} className="group">
                     <TableCell>
                       <Link
                         to={`/traces/${trace.trace_id}`}
-                        className="font-mono text-xs text-primary"
+                        className="font-mono text-xs font-medium text-primary hover:underline"
                       >
                         {trace.trace_id}
                       </Link>
                     </TableCell>
-                    <TableCell>{trace.workflow_name}</TableCell>
+                    <TableCell className="font-medium">{trace.workflow_name}</TableCell>
                     <TableCell>
-                      <Badge>{trace.status}</Badge>
+                      <StatusBadge status={trace.status} />
                     </TableCell>
-                    <TableCell className="text-xs text-muted-foreground">
+                    <TableCell className="text-xs tabular-nums text-muted-foreground">
                       {new Date(trace.started_at).toLocaleString()}
                     </TableCell>
                   </TableRow>
@@ -108,8 +133,8 @@ export function DashboardPage() {
               </TableBody>
             </Table>
           )}
-        </CardContent>
-      </Card>
+        </div>
+      </div>
     </div>
   );
 }
