@@ -1,8 +1,13 @@
 import { useAuth, useUser } from '@clerk/clerk-react';
+import { Building2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
+import { Logo } from '../../components/brand/Logo';
+import { FormField, SettingsCard } from '../../components/layout/SettingsCard';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 
-const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3000';
+const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3100';
 
 export function OnboardingPage() {
   const { user } = useUser();
@@ -11,10 +16,12 @@ export function OnboardingPage() {
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
   const [error, setError] = useState<string | null>(null);
+  const [submitting, setSubmitting] = useState(false);
 
   async function onSubmit(event: FormEvent) {
     event.preventDefault();
     setError(null);
+    setSubmitting(true);
 
     const ownerExternalId = userId ?? import.meta.env.VITE_DEV_USER_ID ?? 'dev_user';
     const ownerEmail = user?.primaryEmailAddress?.emailAddress ?? 'owner@example.com';
@@ -41,25 +48,49 @@ export function OnboardingPage() {
       navigate('/settings/projects');
     } catch (err) {
       setError(err instanceof Error ? err.message : 'Onboarding failed');
+    } finally {
+      setSubmitting(false);
     }
   }
 
   return (
-    <section>
-      <h2>Create your organization</h2>
-      <p>Set up your workspace, default project, and staging environment.</p>
-      <form onSubmit={onSubmit} className="settings-form">
-        <label>
-          Organization name
-          <input value={name} onChange={(e) => setName(e.target.value)} required />
-        </label>
-        <label>
-          URL slug
-          <input value={slug} onChange={(e) => setSlug(e.target.value)} required />
-        </label>
-        <button type="submit">Complete setup</button>
-      </form>
-      {error && <p className="error">{error}</p>}
-    </section>
+    <div className="flex min-h-screen items-center justify-center bg-mesh-gradient p-6">
+      <div className="w-full max-w-lg space-y-8">
+        <div className="text-center">
+          <Logo variant="light" className="justify-center" />
+        </div>
+        <SettingsCard
+          title="Create your organization"
+          description="Set up your workspace with a default project and staging environment."
+        >
+          <form onSubmit={onSubmit} className="space-y-4">
+            <FormField label="Organization name">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Acme Corp"
+                required
+              />
+            </FormField>
+            <FormField label="URL slug">
+              <Input
+                value={slug}
+                onChange={(e) => setSlug(e.target.value)}
+                placeholder="acme-corp"
+                className="font-mono"
+                required
+              />
+            </FormField>
+            {error && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+            )}
+            <Button type="submit" disabled={submitting} className="w-full">
+              <Building2 className="h-4 w-4" aria-hidden />
+              {submitting ? 'Setting up…' : 'Complete setup'}
+            </Button>
+          </form>
+        </SettingsCard>
+      </div>
+    </div>
   );
 }

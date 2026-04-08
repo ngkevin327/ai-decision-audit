@@ -1,4 +1,6 @@
-import { Badge } from '../../components/ui/badge';
+import { Download } from 'lucide-react';
+import { Button } from '../../components/ui/button';
+import { StatusBadge } from '../../components/ui/status-badge';
 
 export interface ExportJobItem {
   export_id: string;
@@ -22,28 +24,30 @@ export function ExportJobRow({ job, onDownload, downloading }: ExportJobRowProps
   const canDownload = job.status === 'completed';
 
   return (
-    <tr className="border-b border-border hover:bg-muted/40">
-      <td className="px-3 py-2 font-mono text-xs">{job.export_id.slice(0, 8)}…</td>
-      <td className="px-3 py-2">
-        <Badge>{job.status}</Badge>
+    <tr className="border-b border-border transition-colors hover:bg-primary/5">
+      <td className="px-4 py-3 font-mono text-xs">{job.export_id.slice(0, 8)}…</td>
+      <td className="px-4 py-3">
+        <StatusBadge status={job.status} />
       </td>
-      <td className="px-3 py-2 text-sm">{job.trace_count}</td>
-      <td className="px-3 py-2 text-xs text-muted-foreground">
+      <td className="px-4 py-3 tabular-nums">{job.trace_count}</td>
+      <td className="px-4 py-3 text-xs tabular-nums text-muted-foreground">
         {new Date(job.created_at).toLocaleString()}
       </td>
-      <td className="px-3 py-2 font-mono text-xs text-muted-foreground">
+      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
         {job.chain_hash ? `${job.chain_hash.slice(0, 12)}…` : '—'}
       </td>
-      <td className="px-3 py-2 text-right">
+      <td className="px-4 py-3 text-right">
         {canDownload ? (
-          <button
+          <Button
             type="button"
+            size="sm"
+            variant="outline"
             disabled={downloading}
             onClick={() => onDownload(job.export_id)}
-            className="inline-flex h-8 items-center rounded-md border border-border px-3 text-xs font-medium hover:bg-accent disabled:opacity-50"
           >
+            <Download className="h-3.5 w-3.5" aria-hidden />
             {downloading ? 'Preparing…' : 'Download'}
-          </button>
+          </Button>
         ) : (
           <span className="text-xs text-muted-foreground">
             {job.error_message ?? 'Processing…'}

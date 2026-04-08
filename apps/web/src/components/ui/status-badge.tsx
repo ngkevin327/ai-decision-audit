@@ -3,6 +3,8 @@ import { cn } from '../../lib/utils';
 const statusStyles: Record<string, string> = {
   completed: 'border-emerald-200 bg-emerald-50 text-emerald-800',
   in_progress: 'border-amber-200 bg-amber-50 text-amber-800',
+  pending: 'border-slate-200 bg-slate-100 text-slate-700',
+  processing: 'border-blue-200 bg-blue-50 text-blue-800',
   failed: 'border-red-200 bg-red-50 text-red-800',
   cancelled: 'border-slate-200 bg-slate-100 text-slate-600',
 };
@@ -25,6 +27,8 @@ export function StatusBadge({ status }: { status: string }) {
           normalized === 'in_progress' && 'bg-amber-500 animate-pulse',
           normalized === 'failed' && 'bg-red-500',
           normalized === 'cancelled' && 'bg-slate-400',
+          normalized === 'pending' && 'bg-slate-400',
+          normalized === 'processing' && 'bg-blue-500 animate-pulse',
           !statusStyles[normalized] && 'bg-muted-foreground',
         )}
         aria-hidden

@@ -1,9 +1,12 @@
 import { useMutation, useQuery, useQueryClient } from '@tanstack/react-query';
+import { FileArchive, Plus } from 'lucide-react';
 import { useState } from 'react';
 import { useApiContext } from '../../api/hooks';
+import { EmptyState } from '../../components/layout/EmptyState';
+import { PageHeader } from '../../components/layout/PageHeader';
 import { ErrorState } from '../../components/ErrorState';
 import { LoadingState } from '../../components/LoadingState';
-import { Card, CardContent, CardHeader, CardTitle } from '../../components/ui/card';
+import { Button } from '../../components/ui/button';
 import { ExportJobRow, type ExportJobItem } from './ExportJobRow';
 
 interface ExportListResponse {
@@ -58,61 +61,63 @@ export function ExportsPage() {
   const jobs = data?.exports ?? [];
 
   return (
-    <div className="space-y-4">
-      <div className="flex flex-wrap items-center justify-between gap-3">
-        <div>
-          <h1 className="text-xl font-semibold">Exports</h1>
-          <p className="text-sm text-muted-foreground">
-            Tamper-evident packages with manifest and chain hashes for auditors.
-          </p>
-        </div>
-        <button
-          type="button"
-          onClick={() => createExport.mutate()}
-          disabled={createExport.isPending}
-          className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
-        >
-          {createExport.isPending ? 'Requesting…' : 'New export'}
-        </button>
-      </div>
+    <div className="page-container">
+      <PageHeader
+        title="Exports"
+        description="Generate tamper-evident auditor packages with manifest signatures and hash-chain verification data."
+        actions={
+          <Button
+            type="button"
+            onClick={() => createExport.mutate()}
+            disabled={createExport.isPending}
+          >
+            <Plus className="h-4 w-4" aria-hidden />
+            {createExport.isPending ? 'Requesting…' : 'New export'}
+          </Button>
+        }
+      />
 
-      <Card>
-        <CardHeader>
-          <CardTitle>Export jobs</CardTitle>
-        </CardHeader>
-        <CardContent className="overflow-x-auto p-0">
+      {jobs.length === 0 ? (
+        <EmptyState
+          icon={FileArchive}
+          title="No export jobs yet"
+          description="Request an export to package traces for compliance review. Jobs appear here with download links when ready."
+          action={
+            <Button
+              type="button"
+              onClick={() => createExport.mutate()}
+              disabled={createExport.isPending}
+            >
+              Create first export
+            </Button>
+          }
+        />
+      ) : (
+        <div className="surface-card overflow-hidden">
           <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-muted/50 text-xs uppercase text-muted-foreground">
+            <thead className="border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
               <tr>
-                <th className="px-3 py-2">ID</th>
-                <th className="px-3 py-2">Status</th>
-                <th className="px-3 py-2">Traces</th>
-                <th className="px-3 py-2">Created</th>
-                <th className="px-3 py-2">Chain</th>
-                <th className="px-3 py-2 text-right">Actions</th>
+                <th className="px-4 py-3 font-medium">ID</th>
+                <th className="px-4 py-3 font-medium">Status</th>
+                <th className="px-4 py-3 font-medium">Traces</th>
+                <th className="px-4 py-3 font-medium">Created</th>
+                <th className="px-4 py-3 font-medium">Chain</th>
+                <th className="px-4 py-3 text-right font-medium">Actions</th>
               </tr>
             </thead>
             <tbody>
-              {jobs.length === 0 ? (
-                <tr>
-                  <td colSpan={6} className="px-3 py-6 text-center text-muted-foreground">
-                    No export jobs yet. Request an export to generate an auditor package.
-                  </td>
-                </tr>
-              ) : (
-                jobs.map((job) => (
-                  <ExportJobRow
-                    key={job.export_id}
-                    job={job}
-                    onDownload={handleDownload}
-                    downloading={downloadingId === job.export_id}
-                  />
-                ))
-              )}
+              {jobs.map((job) => (
+                <ExportJobRow
+                  key={job.export_id}
+                  job={job}
+                  onDownload={handleDownload}
+                  downloading={downloadingId === job.export_id}
+                />
+              ))}
             </tbody>
           </table>
-        </CardContent>
-      </Card>
+        </div>
+      )}
     </div>
   );
 }

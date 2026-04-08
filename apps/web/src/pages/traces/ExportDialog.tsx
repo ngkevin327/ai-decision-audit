@@ -1,6 +1,8 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query';
+import { FileArchive, X } from 'lucide-react';
 import { useState } from 'react';
 import { useApiContext } from '../../api/hooks';
+import { Button } from '../../components/ui/button';
 
 interface ExportDialogProps {
   traceId: string;
@@ -29,36 +31,49 @@ export function ExportDialog({ traceId, open, onClose }: ExportDialogProps) {
   if (!open) return null;
 
   return (
-    <div className="fixed inset-0 z-50 flex items-center justify-center bg-black/50 p-4">
+    <div
+      className="fixed inset-0 z-50 flex items-center justify-center bg-slate-950/60 p-4 backdrop-blur-sm"
+      onClick={onClose}
+      role="presentation"
+    >
       <div
         role="dialog"
         aria-labelledby="export-dialog-title"
-        className="w-full max-w-md rounded-lg border border-border bg-card p-5 shadow-lg"
+        className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-card-hover"
+        onClick={(e) => e.stopPropagation()}
       >
-        <h2 id="export-dialog-title" className="text-lg font-semibold">
-          Export trace
-        </h2>
-        <p className="mt-2 text-sm text-muted-foreground">
-          Create an auditor package for <span className="font-mono">{traceId}</span> including
-          manifest, JSON Lines events, and permission snapshot.
-        </p>
-        {message ? <p className="mt-3 text-sm">{message}</p> : null}
-        <div className="mt-5 flex justify-end gap-2">
+        <div className="mb-4 flex items-start justify-between gap-3">
+          <div className="flex h-10 w-10 items-center justify-center rounded-lg bg-primary/10 text-primary">
+            <FileArchive className="h-5 w-5" aria-hidden />
+          </div>
           <button
             type="button"
             onClick={onClose}
-            className="inline-flex h-9 items-center rounded-md border border-border px-4 text-sm hover:bg-accent"
+            className="rounded-lg p-1 text-muted-foreground hover:bg-muted"
+            aria-label="Close"
           >
-            Close
+            <X className="h-5 w-5" />
           </button>
-          <button
+        </div>
+        <h2 id="export-dialog-title" className="text-lg font-semibold">
+          Export trace
+        </h2>
+        <p className="mt-2 text-sm leading-relaxed text-muted-foreground">
+          Create an auditor package for <span className="font-mono text-foreground">{traceId}</span>{' '}
+          including manifest, JSON Lines events, and permission snapshot.
+        </p>
+        {message && <p className="mt-4 rounded-lg bg-muted/50 px-3 py-2 text-sm">{message}</p>}
+        <div className="mt-6 flex justify-end gap-2">
+          <Button type="button" variant="outline" onClick={onClose}>
+            Close
+          </Button>
+          <Button
             type="button"
             disabled={createExport.isPending}
             onClick={() => createExport.mutate()}
-            className="inline-flex h-9 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground hover:opacity-90 disabled:opacity-50"
           >
             {createExport.isPending ? 'Requesting…' : 'Request export'}
-          </button>
+          </Button>
         </div>
       </div>
     </div>

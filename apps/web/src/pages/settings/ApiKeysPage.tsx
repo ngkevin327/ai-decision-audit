@@ -1,6 +1,10 @@
+import { AlertTriangle, KeyRound, Plus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
-import { ProtectedRoute } from '../../auth/ProtectedRoute';
 import { ApiKeySummary, Project, useApiKeys, useProjects } from '../../api/hooks';
+import { PageHeader } from '../../components/layout/PageHeader';
+import { FormField, SettingsCard } from '../../components/layout/SettingsCard';
+import { Button } from '../../components/ui/button';
+import { Input } from '../../components/ui/input';
 
 export function ApiKeysPage() {
   const { list: listProjects } = useProjects();
@@ -57,40 +61,84 @@ export function ApiKeysPage() {
   }
 
   return (
-    <ProtectedRoute>
-      <section>
-        <h2>API Keys</h2>
-        <form onSubmit={onSubmit} className="settings-form">
-          <label>
-            Project
-            <select value={projectId} onChange={(e) => setProjectId(e.target.value)}>
-              {projects.map((p) => (
-                <option key={p.id} value={p.id}>
-                  {p.name}
-                </option>
-              ))}
-            </select>
-          </label>
-          <label>
-            Key name
-            <input value={name} onChange={(e) => setName(e.target.value)} required />
-          </label>
-          <button type="submit">Issue key</button>
-        </form>
-        {plaintextKey && (
-          <p className="key-reveal">
-            Copy this key now — it will not be shown again: <code>{plaintextKey}</code>
-          </p>
-        )}
-        {error && <p className="error">{error}</p>}
-        <ul>
-          {keys.map((key) => (
-            <li key={key.id}>
-              {key.name} — <code>{key.keyPrefix}…</code> ({key.scopes.join(', ')})
-            </li>
-          ))}
-        </ul>
-      </section>
-    </ProtectedRoute>
+    <div className="page-container max-w-4xl">
+      <PageHeader
+        title="API keys"
+        description="Issue ingest and read keys for SDK integration. Plaintext keys are shown once at creation."
+      />
+
+      {plaintextKey && (
+        <div
+          role="alert"
+          className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
+        >
+          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
+          <div className="min-w-0 space-y-2">
+            <p className="font-medium">Copy your API key now — it will not be shown again.</p>
+            <code className="block break-all rounded-lg bg-white/80 px-3 py-2 font-mono text-xs">
+              {plaintextKey}
+            </code>
+          </div>
+        </div>
+      )}
+
+      <div className="grid gap-6 lg:grid-cols-2">
+        <SettingsCard title="Issue new key">
+          <form onSubmit={onSubmit} className="space-y-4">
+            <FormField label="Project">
+              <select
+                value={projectId}
+                onChange={(e) => setProjectId(e.target.value)}
+                className="select-field"
+              >
+                {projects.map((p) => (
+                  <option key={p.id} value={p.id}>
+                    {p.name}
+                  </option>
+                ))}
+              </select>
+            </FormField>
+            <FormField label="Key name">
+              <Input
+                value={name}
+                onChange={(e) => setName(e.target.value)}
+                placeholder="Production ingest"
+                required
+              />
+            </FormField>
+            {error && (
+              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
+            )}
+            <Button type="submit">
+              <Plus className="h-4 w-4" aria-hidden />
+              Issue key
+            </Button>
+          </form>
+        </SettingsCard>
+
+        <SettingsCard title="Active keys">
+          <ul className="space-y-3">
+            {keys.length === 0 && (
+              <p className="text-sm text-muted-foreground">No keys for this project.</p>
+            )}
+            {keys.map((key) => (
+              <li
+                key={key.id}
+                className="flex items-start gap-3 rounded-lg border border-border p-4"
+              >
+                <div className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary/10 text-primary">
+                  <KeyRound className="h-4 w-4" aria-hidden />
+                </div>
+                <div className="min-w-0">
+                  <p className="font-medium">{key.name}</p>
+                  <p className="font-mono text-xs text-muted-foreground">{key.keyPrefix}…</p>
+                  <p className="mt-1 text-xs text-muted-foreground">{key.scopes.join(' · ')}</p>
+                </div>
+              </li>
+            ))}
+          </ul>
+        </SettingsCard>
+      </div>
+    </div>
   );
 }
