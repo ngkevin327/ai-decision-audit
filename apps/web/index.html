@@ -7,6 +7,17 @@
       name="description"
       content="AI Audit Trail — forensic trace explorer for AI copilots in production SaaS."
     />
+    <script>
+      (function () {
+        var theme = localStorage.getItem('audit-trail-theme');
+        var dark =
+          theme === 'dark' ||
+          (theme !== 'light' && window.matchMedia('(prefers-color-scheme: dark)').matches);
+        if (dark) document.documentElement.classList.add('dark');
+        var accent = localStorage.getItem('audit-trail-accent');
+        if (accent) document.documentElement.setAttribute('data-accent', accent);
+      })();
+    </script>
     <link rel="preconnect" href="https://fonts.googleapis.com" />
     <link rel="preconnect" href="https://fonts.gstatic.com" crossorigin />
     <link

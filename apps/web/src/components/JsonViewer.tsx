@@ -19,8 +19,8 @@ export function JsonViewer({ value, title }: JsonViewerProps) {
   }
 
   return (
-    <div className="overflow-hidden rounded-lg border border-border bg-slate-950/5">
-      <div className="flex items-center justify-between border-b border-border bg-muted/40 px-3 py-2">
+    <div className="overflow-hidden rounded-lg border border-border bg-muted/30 dark:bg-slate-950/80">
+      <div className="flex items-center justify-between border-b border-border bg-muted/50 px-3 py-2 dark:bg-slate-900/80">
         <span className="text-xs font-semibold uppercase tracking-wider text-muted-foreground">
           {title ?? 'Payload'}
         </span>

@@ -8,7 +8,7 @@ interface ErrorStateProps {
 export function ErrorState({ message, onRetry }: ErrorStateProps) {
   return (
     <div
-      className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800"
+      className="rounded-lg border border-red-200 bg-red-50 p-4 text-sm text-red-800 dark:border-red-900 dark:bg-red-950/40 dark:text-red-300"
       role="alert"
     >
       <p>{message}</p>

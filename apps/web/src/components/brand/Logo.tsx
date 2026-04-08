@@ -12,7 +12,7 @@ export function Logo({ compact, variant = 'dark', className }: LogoProps) {
   return (
     <div className={cn('flex items-center gap-3', className)}>
       <div
-        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-gradient-to-br from-primary to-indigo-600 shadow-glow"
+        className="flex h-9 w-9 shrink-0 items-center justify-center rounded-lg bg-primary shadow-glow"
         aria-hidden
       >
         <svg viewBox="0 0 24 24" className="h-5 w-5 text-primary-foreground" fill="none">

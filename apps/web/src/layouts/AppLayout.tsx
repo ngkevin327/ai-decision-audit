@@ -10,6 +10,7 @@ import { NavLink, Outlet } from 'react-router-dom';
 import { Logo } from '../components/brand/Logo';
 import { ProjectSwitcher } from '../components/ProjectSwitcher';
 import { QuotaBanner } from '../components/QuotaBanner';
+import { ThemeToggle } from '../components/ThemeToggle';
 import { cn } from '../lib/utils';
 
 const navItems = [
@@ -75,6 +76,7 @@ export function AppLayout() {
         <header className="sticky top-0 z-10 flex h-16 items-center border-b border-border/80 bg-card/80 px-6 backdrop-blur-md">
           <div className="flex w-full items-center justify-between gap-4">
             <ProjectSwitcher />
+            <ThemeToggle />
           </div>
         </header>
         <main className="flex-1 overflow-auto bg-mesh-gradient p-6 md:p-8">

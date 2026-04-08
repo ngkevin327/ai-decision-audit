@@ -2,6 +2,7 @@ import { SignIn } from '@clerk/clerk-react';
 import { ArrowRight, Shield } from 'lucide-react';
 import { Link } from 'react-router-dom';
 import { Logo } from '../components/brand/Logo';
+import { ThemeToggle } from '../components/ThemeToggle';
 
 export function SignInPage() {
   const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
@@ -36,7 +37,10 @@ export function SignInPage() {
           </div>
           <p className="text-xs text-sidebar-muted">© AI Audit Trail</p>
         </div>
-        <div className="flex flex-1 flex-col items-center justify-center bg-mesh-gradient p-8">
+        <div className="relative flex flex-1 flex-col items-center justify-center bg-mesh-gradient p-8">
+          <div className="absolute right-6 top-6">
+            <ThemeToggle />
+          </div>
           <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-card-hover">
             <div className="lg:hidden">
               <Logo variant="light" />
@@ -68,7 +72,10 @@ export function SignInPage() {
   }
 
   return (
-    <div className="flex min-h-screen items-center justify-center bg-mesh-gradient p-6">
+    <div className="relative flex min-h-screen items-center justify-center bg-mesh-gradient p-6">
+      <div className="absolute right-6 top-6">
+        <ThemeToggle />
+      </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-card-hover">
         <div className="mb-6 flex justify-center">
           <Logo variant="light" />

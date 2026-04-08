@@ -30,8 +30,8 @@ export function QuotaBanner() {
       role="alert"
       className={
         isBlocked
-          ? 'border-b border-red-200/80 bg-gradient-to-r from-red-50 to-red-50/50 px-6 py-2.5'
-          : 'border-b border-amber-200/80 bg-gradient-to-r from-amber-50 to-amber-50/50 px-6 py-2.5'
+          ? 'border-b border-red-200/80 bg-gradient-to-r from-red-50 to-red-50/50 px-6 py-2.5 dark:border-red-900/80 dark:from-red-950/50 dark:to-red-950/30'
+          : 'border-b border-amber-200/80 bg-gradient-to-r from-amber-50 to-amber-50/50 px-6 py-2.5 dark:border-amber-900/80 dark:from-amber-950/50 dark:to-amber-950/30'
       }
     >
       <div className="mx-auto flex max-w-6xl items-center gap-2 text-sm">
@@ -39,7 +39,11 @@ export function QuotaBanner() {
           className={`h-4 w-4 shrink-0 ${isBlocked ? 'text-red-600' : 'text-amber-600'}`}
           aria-hidden
         />
-        <p className={isBlocked ? 'text-red-900' : 'text-amber-900'}>
+        <p
+          className={
+            isBlocked ? 'text-red-900 dark:text-red-200' : 'text-amber-900 dark:text-amber-200'
+          }
+        >
           {isBlocked ? (
             <>
               Monthly event quota reached ({data.events_used.toLocaleString()} /{' '}

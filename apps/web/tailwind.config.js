@@ -1,5 +1,6 @@
 /** @type {import('tailwindcss').Config} */
 export default {
+  darkMode: 'class',
   content: ['./index.html', './src/**/*.{js,ts,jsx,tsx}'],
   theme: {
     extend: {
@@ -31,13 +32,12 @@ export default {
         sm: 'var(--radius-sm)',
       },
       boxShadow: {
-        card: '0 1px 3px 0 rgb(15 23 42 / 0.06), 0 1px 2px -1px rgb(15 23 42 / 0.06)',
-        'card-hover': '0 10px 25px -5px rgb(15 23 42 / 0.08), 0 4px 10px -6px rgb(15 23 42 / 0.06)',
-        glow: '0 0 40px -10px hsl(221 83% 53% / 0.35)',
+        card: 'var(--shadow-card)',
+        'card-hover': 'var(--shadow-card-hover)',
+        glow: 'var(--shadow-glow)',
       },
       backgroundImage: {
-        'mesh-gradient':
-          'radial-gradient(at 40% 20%, hsl(221 83% 53% / 0.12) 0px, transparent 50%), radial-gradient(at 80% 0%, hsl(262 83% 58% / 0.08) 0px, transparent 50%), radial-gradient(at 0% 50%, hsl(199 89% 48% / 0.06) 0px, transparent 50%)',
+        'mesh-gradient': 'var(--mesh-gradient)',
       },
     },
   },
