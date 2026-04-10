@@ -1,8 +1,9 @@
-import { AlertTriangle, KeyRound, Plus } from 'lucide-react';
+import { KeyRound, Plus } from 'lucide-react';
 import { FormEvent, useEffect, useState } from 'react';
 import { ApiKeySummary, Project, useApiKeys, useProjects } from '../../api/hooks';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormField, SettingsCard } from '../../components/layout/SettingsCard';
+import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 
@@ -68,18 +69,11 @@ export function ApiKeysPage() {
       />
 
       {plaintextKey && (
-        <div
-          role="alert"
-          className="flex gap-3 rounded-xl border border-amber-200 bg-amber-50 p-4 text-sm text-amber-950"
-        >
-          <AlertTriangle className="h-5 w-5 shrink-0 text-amber-600" aria-hidden />
-          <div className="min-w-0 space-y-2">
-            <p className="font-medium">Copy your API key now — it will not be shown again.</p>
-            <code className="block break-all rounded-lg bg-white/80 px-3 py-2 font-mono text-xs">
-              {plaintextKey}
-            </code>
-          </div>
-        </div>
+        <Alert variant="warning" title="Copy your API key now — it will not be shown again.">
+          <code className="block break-all rounded-lg bg-background/80 px-3 py-2 font-mono text-xs dark:bg-background/40">
+            {plaintextKey}
+          </code>
+        </Alert>
       )}
 
       <div className="grid gap-6 lg:grid-cols-2">
@@ -106,9 +100,7 @@ export function ApiKeysPage() {
                 required
               />
             </FormField>
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
             <Button type="submit">
               <Plus className="h-4 w-4" aria-hidden />
               Issue key

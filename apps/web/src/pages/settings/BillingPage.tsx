@@ -4,6 +4,7 @@ import { useApiContext } from '../../api/hooks';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { StatCard } from '../../components/layout/StatCard';
 import { SettingsCard } from '../../components/layout/SettingsCard';
+import { Alert } from '../../components/ui/alert';
 
 interface QuotaUsage {
   plan_tier: string;
@@ -56,9 +57,7 @@ export function BillingPage() {
 
       <SettingsCard title="Usage this period">
         {isLoading && <p className="text-sm text-muted-foreground">Loading usage…</p>}
-        {error && (
-          <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error.message}</p>
-        )}
+        {error && <Alert variant="error">{error.message}</Alert>}
         {data && (
           <div className="space-y-5">
             <div>
@@ -90,14 +89,14 @@ export function BillingPage() {
               </div>
             </dl>
             {data.warning_threshold && !data.limit_reached && (
-              <p className="rounded-lg border border-amber-200 bg-amber-50 px-4 py-3 text-sm text-amber-900">
+              <Alert variant="warning" title="Approaching quota limit">
                 You have used 80% or more of your monthly quota. Ingest will block at 100%.
-              </p>
+              </Alert>
             )}
             {data.limit_reached && (
-              <p className="rounded-lg border border-red-200 bg-red-50 px-4 py-3 text-sm text-red-900">
-                Monthly quota reached. Upgrade your plan or wait until the next billing period.
-              </p>
+              <Alert variant="error" title="Monthly quota reached">
+                Upgrade your plan or wait until the next billing period.
+              </Alert>
             )}
           </div>
         )}

@@ -10,7 +10,15 @@ export function Table({ className, ...props }: TableHTMLAttributes<HTMLTableElem
 }
 
 export function TableHeader({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
-  return <thead className={cn('border-b border-border bg-muted/50', className)} {...props} />;
+  return (
+    <thead
+      className={cn(
+        'border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground',
+        className,
+      )}
+      {...props}
+    />
+  );
 }
 
 export function TableBody({ className, ...props }: HTMLAttributes<HTMLTableSectionElement>) {
@@ -21,7 +29,10 @@ export const TableRow = forwardRef<HTMLTableRowElement, HTMLAttributes<HTMLTable
   ({ className, ...props }, ref) => (
     <tr
       ref={ref}
-      className={cn('border-b border-border transition-colors hover:bg-muted/40', className)}
+      className={cn(
+        'border-b border-border transition-colors hover:bg-primary/5 focus-within:bg-primary/5',
+        className,
+      )}
       {...props}
     />
   ),
@@ -31,15 +42,12 @@ TableRow.displayName = 'TableRow';
 export function TableHead({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
   return (
     <th
-      className={cn(
-        'h-10 px-3 text-left align-middle text-xs font-medium text-muted-foreground',
-        className,
-      )}
+      className={cn('h-11 px-4 text-left align-middle text-xs font-medium uppercase', className)}
       {...props}
     />
   );
 }
 
 export function TableCell({ className, ...props }: HTMLAttributes<HTMLTableCellElement>) {
-  return <td className={cn('p-3 align-middle', className)} {...props} />;
+  return <td className={cn('px-4 py-3 align-middle', className)} {...props} />;
 }

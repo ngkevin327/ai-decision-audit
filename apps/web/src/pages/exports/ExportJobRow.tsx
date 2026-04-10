@@ -1,6 +1,7 @@
 import { Download } from 'lucide-react';
 import { Button } from '../../components/ui/button';
 import { StatusBadge } from '../../components/ui/status-badge';
+import { TableCell, TableRow } from '../../components/ui/table';
 
 export interface ExportJobItem {
   export_id: string;
@@ -24,19 +25,19 @@ export function ExportJobRow({ job, onDownload, downloading }: ExportJobRowProps
   const canDownload = job.status === 'completed';
 
   return (
-    <tr className="border-b border-border transition-colors hover:bg-primary/5">
-      <td className="px-4 py-3 font-mono text-xs">{job.export_id.slice(0, 8)}…</td>
-      <td className="px-4 py-3">
+    <TableRow>
+      <TableCell className="font-mono text-xs">{job.export_id.slice(0, 8)}…</TableCell>
+      <TableCell>
         <StatusBadge status={job.status} />
-      </td>
-      <td className="px-4 py-3 tabular-nums">{job.trace_count}</td>
-      <td className="px-4 py-3 text-xs tabular-nums text-muted-foreground">
+      </TableCell>
+      <TableCell className="tabular-nums">{job.trace_count}</TableCell>
+      <TableCell className="text-xs tabular-nums text-muted-foreground">
         {new Date(job.created_at).toLocaleString()}
-      </td>
-      <td className="px-4 py-3 font-mono text-xs text-muted-foreground">
+      </TableCell>
+      <TableCell className="font-mono text-xs text-muted-foreground">
         {job.chain_hash ? `${job.chain_hash.slice(0, 12)}…` : '—'}
-      </td>
-      <td className="px-4 py-3 text-right">
+      </TableCell>
+      <TableCell className="text-right">
         {canDownload ? (
           <Button
             type="button"
@@ -53,7 +54,7 @@ export function ExportJobRow({ job, onDownload, downloading }: ExportJobRowProps
             {job.error_message ?? 'Processing…'}
           </span>
         )}
-      </td>
-    </tr>
+      </TableCell>
+    </TableRow>
   );
 }

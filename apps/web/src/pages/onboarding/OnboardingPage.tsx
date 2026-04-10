@@ -4,6 +4,7 @@ import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
 import { Logo } from '../../components/brand/Logo';
 import { FormField, SettingsCard } from '../../components/layout/SettingsCard';
+import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 
@@ -81,9 +82,7 @@ export function OnboardingPage() {
                 required
               />
             </FormField>
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
             <Button type="submit" disabled={submitting} className="w-full">
               <Building2 className="h-4 w-4" aria-hidden />
               {submitting ? 'Setting up…' : 'Complete setup'}

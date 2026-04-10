@@ -1,10 +1,16 @@
 import { useEffect, useState } from 'react';
-import { Link, useParams, useSearchParams } from 'react-router-dom';
+import { Film } from 'lucide-react';
+import { useParams, useSearchParams } from 'react-router-dom';
 import { useReplay } from '../../api/hooks';
+import { EmptyState } from '../../components/layout/EmptyState';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageState } from '../../components/layout/PageState';
 import { JsonViewer } from '../../components/JsonViewer';
 import { PermissionSnapshotPanel } from '../../components/PermissionSnapshotPanel';
+import { ErrorState } from '../../components/ErrorState';
 import { LoadingState } from '../../components/LoadingState';
+import { LinkButton } from '../../components/ui/link-button';
+import { StatusBadge } from '../../components/ui/status-badge';
 import { ReplayControls } from './ReplayControls';
 
 export function ReplayPage() {
@@ -42,11 +48,38 @@ export function ReplayPage() {
     setSearchParams({ event_id: step.event_id }, { replace: true });
   }, [index, data, setSearchParams]);
 
-  if (isLoading) return <LoadingState label="Loading replay timeline" />;
-  if (error) return <p className="text-sm text-red-600">{error.message}</p>;
+  if (isLoading) {
+    return (
+      <PageState>
+        <LoadingState label="Loading replay timeline" />
+      </PageState>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageState>
+        <ErrorState message={error.message} />
+      </PageState>
+    );
+  }
+
   if (!data || data.steps.length === 0) {
     return (
-      <p className="text-sm text-muted-foreground">No replay steps available for this trace.</p>
+      <PageState>
+        <EmptyState
+          icon={Film}
+          title="No replay steps"
+          description="This trace has no replayable events yet. Ingest more events or open the trace detail view."
+          action={
+            traceId ? (
+              <LinkButton to={`/traces/${traceId}`} variant="outline">
+                Back to trace
+              </LinkButton>
+            ) : undefined
+          }
+        />
+      </PageState>
     );
   }
 
@@ -58,12 +91,9 @@ export function ReplayPage() {
         title={`Replay · ${data.trace_id}`}
         description={`${data.workflow_name} — step ${index + 1} of ${data.steps.length}. Use j/k to navigate.`}
         actions={
-          <Link
-            to={`/traces/${data.trace_id}`}
-            className="text-sm font-medium text-primary hover:underline"
-          >
+          <LinkButton to={`/traces/${data.trace_id}`} variant="ghost">
             ← Back to detail
-          </Link>
+          </LinkButton>
         }
       />
 
@@ -75,11 +105,9 @@ export function ReplayPage() {
       />
 
       <div className="grid gap-6 lg:grid-cols-3">
-        <div className="space-y-4 rounded-xl border-2 border-primary/30 bg-gradient-to-br from-primary/5 to-transparent p-5 shadow-glow lg:col-span-2">
+        <div className="highlight-panel space-y-4 p-5 lg:col-span-2">
           <div className="flex flex-wrap items-center gap-3">
-            <span className="inline-flex rounded-full bg-primary/15 px-2.5 py-0.5 text-xs font-medium capitalize text-primary">
-              {step.type.replace(/_/g, ' ')}
-            </span>
+            <StatusBadge status={step.type} />
             <span className="font-mono text-xs text-foreground">{step.event_id}</span>
             <span className="text-xs tabular-nums text-muted-foreground">
               {new Date(step.occurred_at).toLocaleString()}

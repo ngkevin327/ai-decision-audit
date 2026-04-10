@@ -3,8 +3,12 @@ import { Link } from 'react-router-dom';
 import { useTraceSearch, useSelectedProject } from '../api/hooks';
 import { EmptyState } from '../components/layout/EmptyState';
 import { PageHeader } from '../components/layout/PageHeader';
+import { SectionHeader } from '../components/layout/SectionHeader';
 import { StatCard } from '../components/layout/StatCard';
+import { Alert } from '../components/ui/alert';
 import { Button } from '../components/ui/button';
+import { LinkButton } from '../components/ui/link-button';
+import { LoadingState } from '../components/LoadingState';
 import { StatusBadge } from '../components/ui/status-badge';
 import {
   Table,
@@ -31,13 +35,10 @@ export function DashboardPage() {
         title="Dashboard"
         description="Monitor ingest health, review recent AI executions, and jump into forensic investigation."
         actions={
-          <Link
-            to="/traces"
-            className="inline-flex h-10 items-center rounded-md bg-primary px-4 text-sm font-medium text-primary-foreground shadow-md shadow-primary/20 transition hover:bg-primary/90"
-          >
+          <LinkButton to="/traces" size="lg">
             Explore traces
-            <ArrowRight className="ml-2 h-4 w-4" aria-hidden />
-          </Link>
+            <ArrowRight className="h-4 w-4" aria-hidden />
+          </LinkButton>
         }
       />
 
@@ -65,15 +66,11 @@ export function DashboardPage() {
       </div>
 
       <div className="surface-card overflow-hidden">
-        <div className="flex items-center justify-between border-b border-border px-5 py-4">
-          <div>
-            <h2 className="text-sm font-semibold">Recent traces</h2>
-            <p className="text-xs text-muted-foreground">Latest ingested workflows</p>
-          </div>
-          <Link to="/traces" className="text-xs font-medium text-primary hover:text-primary/80">
-            View all →
-          </Link>
-        </div>
+        <SectionHeader
+          title="Recent traces"
+          description="Latest ingested workflows"
+          action={{ label: 'View all →', to: '/traces' }}
+        />
         <div className="p-5">
           {!projectId && (
             <EmptyState
@@ -82,13 +79,13 @@ export function DashboardPage() {
               description="Choose a project in the header to load traces and start your forensic review."
             />
           )}
-          {projectId && isLoading && (
-            <p className="py-8 text-center text-sm text-muted-foreground">Loading traces…</p>
-          )}
+          {projectId && isLoading && <LoadingState label="Loading traces" />}
           {error && (
-            <p className="rounded-lg bg-red-50 px-4 py-3 text-sm text-red-800">{error.message}</p>
+            <Alert variant="error" title="Failed to load traces">
+              {error.message}
+            </Alert>
           )}
-          {projectId && !isLoading && data && data.traces.length === 0 && (
+          {projectId && !isLoading && data && data.traces.length === 0 && !error && (
             <EmptyState
               icon={FileSearch}
               title="No traces yet"

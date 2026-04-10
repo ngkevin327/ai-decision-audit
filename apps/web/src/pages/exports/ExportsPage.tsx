@@ -4,9 +4,11 @@ import { useState } from 'react';
 import { useApiContext } from '../../api/hooks';
 import { EmptyState } from '../../components/layout/EmptyState';
 import { PageHeader } from '../../components/layout/PageHeader';
+import { PageState } from '../../components/layout/PageState';
 import { ErrorState } from '../../components/ErrorState';
 import { LoadingState } from '../../components/LoadingState';
 import { Button } from '../../components/ui/button';
+import { Table, TableBody, TableHead, TableHeader, TableRow } from '../../components/ui/table';
 import { ExportJobRow, type ExportJobItem } from './ExportJobRow';
 
 interface ExportListResponse {
@@ -55,8 +57,21 @@ export function ExportsPage() {
     }
   };
 
-  if (isLoading) return <LoadingState label="Loading export jobs" />;
-  if (error) return <ErrorState message={error.message} />;
+  if (isLoading) {
+    return (
+      <PageState>
+        <LoadingState label="Loading export jobs" />
+      </PageState>
+    );
+  }
+
+  if (error) {
+    return (
+      <PageState>
+        <ErrorState message={error.message} />
+      </PageState>
+    );
+  }
 
   const jobs = data?.exports ?? [];
 
@@ -94,18 +109,18 @@ export function ExportsPage() {
         />
       ) : (
         <div className="surface-card overflow-hidden">
-          <table className="w-full text-left text-sm">
-            <thead className="border-b border-border bg-muted/40 text-xs uppercase tracking-wider text-muted-foreground">
-              <tr>
-                <th className="px-4 py-3 font-medium">ID</th>
-                <th className="px-4 py-3 font-medium">Status</th>
-                <th className="px-4 py-3 font-medium">Traces</th>
-                <th className="px-4 py-3 font-medium">Created</th>
-                <th className="px-4 py-3 font-medium">Chain</th>
-                <th className="px-4 py-3 text-right font-medium">Actions</th>
-              </tr>
-            </thead>
-            <tbody>
+          <Table>
+            <TableHeader>
+              <TableRow>
+                <TableHead>ID</TableHead>
+                <TableHead>Status</TableHead>
+                <TableHead>Traces</TableHead>
+                <TableHead>Created</TableHead>
+                <TableHead>Chain</TableHead>
+                <TableHead className="text-right">Actions</TableHead>
+              </TableRow>
+            </TableHeader>
+            <TableBody>
               {jobs.map((job) => (
                 <ExportJobRow
                   key={job.export_id}
@@ -114,8 +129,8 @@ export function ExportsPage() {
                   downloading={downloadingId === job.export_id}
                 />
               ))}
-            </tbody>
-          </table>
+            </TableBody>
+          </Table>
         </div>
       )}
     </div>

@@ -3,6 +3,7 @@ import { FormEvent, useEffect, useState } from 'react';
 import { Project, useProjects } from '../../api/hooks';
 import { PageHeader } from '../../components/layout/PageHeader';
 import { FormField, SettingsCard } from '../../components/layout/SettingsCard';
+import { Alert } from '../../components/ui/alert';
 import { Button } from '../../components/ui/button';
 import { Input } from '../../components/ui/input';
 
@@ -64,9 +65,7 @@ export function ProjectsPage() {
                 required
               />
             </FormField>
-            {error && (
-              <p className="rounded-lg bg-red-50 px-3 py-2 text-sm text-red-800">{error}</p>
-            )}
+            {error && <Alert variant="error">{error}</Alert>}
             <Button type="submit">
               <Plus className="h-4 w-4" aria-hidden />
               Create project
