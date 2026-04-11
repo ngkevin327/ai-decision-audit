@@ -139,4 +139,4 @@ pnpm deps:down
 | Worker crashes on MinIO bucket     | Harmless if bucket exists; latest code ignores `BucketAlreadyOwnedByYou` |
 | `pnpm verify:local` ingest 409     | Re-run (script now uses unique event ids)                                |
 
-See also: [MVP gap report](../mvp-gap-report.md), [local verification log](../verification/local-verification-log.md).
+See also: [local verification log](../verification/local-verification-log.md). (MVP gap/validation reports archived under gitignored `temp/docs/`.)

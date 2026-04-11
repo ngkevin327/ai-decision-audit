@@ -1,3 +1,6 @@
+# Local scratch / git-history tooling (not product runtime)
+temp/
+
 node_modules/
 dist/
 build/
