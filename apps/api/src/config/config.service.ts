@@ -31,4 +31,20 @@ export class AppConfigService {
   get storageDriver() {
     return this.env.STORAGE_DRIVER;
   }
+
+  get clerkSecretKey() {
+    return this.env.CLERK_SECRET_KEY;
+  }
+
+  get clerkEnabled() {
+    return Boolean(this.env.CLERK_SECRET_KEY?.trim());
+  }
+
+  get localDevOrgId() {
+    return this.env.LOCAL_DEV_ORG_ID;
+  }
+
+  get isDevelopment() {
+    return this.env.NODE_ENV === 'development';
+  }
 }

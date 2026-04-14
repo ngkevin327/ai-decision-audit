@@ -19,6 +19,8 @@ export const envSchema = z.object({
   S3_BUCKET: z.string().optional(),
   CLERK_PUBLISHABLE_KEY: z.string().optional(),
   CLERK_SECRET_KEY: z.string().optional(),
+  /** Links Clerk users to local org via POST /public/auth/session (development). */
+  LOCAL_DEV_ORG_ID: z.string().uuid().optional(),
 });
 
 export type EnvConfig = z.infer<typeof envSchema>;
