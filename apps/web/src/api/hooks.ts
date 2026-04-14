@@ -1,6 +1,6 @@
-import { useAuth } from '@clerk/clerk-react';
 import { useQuery } from '@tanstack/react-query';
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { useAppAuth } from '../auth/AuthProvider';
 import { apiFetch } from './client';
 import { fetchReplay, fetchTraceDetail, fetchTraces, type TraceSearchParams } from './traces';
 
@@ -21,7 +21,7 @@ export interface ApiKeySummary {
 }
 
 export function useApiContext() {
-  const { userId, getToken } = useAuth();
+  const { userId, getToken } = useAppAuth();
   const orgId =
     (typeof localStorage !== 'undefined' ? localStorage.getItem('defaultOrgId') : null) ??
     import.meta.env.VITE_DEFAULT_ORG_ID ??

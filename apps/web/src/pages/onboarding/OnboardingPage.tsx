@@ -1,4 +1,5 @@
-import { useAuth, useUser } from '@clerk/clerk-react';
+import { useUser } from '@clerk/clerk-react';
+import { isClerkEnabled, useAppAuth } from '../../auth/AuthProvider';
 import { Building2 } from 'lucide-react';
 import { FormEvent, useState } from 'react';
 import { useNavigate } from 'react-router-dom';
@@ -10,9 +11,15 @@ import { Input } from '../../components/ui/input';
 
 const API_BASE = import.meta.env.VITE_API_BASE_URL ?? 'http://localhost:3100';
 
-export function OnboardingPage() {
+function ClerkOnboardingForm() {
   const { user } = useUser();
-  const { userId } = useAuth();
+  return <OnboardingForm clerkUser={user} />;
+}
+
+type ClerkUser = ReturnType<typeof useUser>['user'];
+
+function OnboardingForm({ clerkUser }: { clerkUser: ClerkUser }) {
+  const { userId } = useAppAuth();
   const navigate = useNavigate();
   const [name, setName] = useState('');
   const [slug, setSlug] = useState('');
@@ -25,7 +32,7 @@ export function OnboardingPage() {
     setSubmitting(true);
 
     const ownerExternalId = userId ?? import.meta.env.VITE_DEV_USER_ID ?? 'dev_user';
-    const ownerEmail = user?.primaryEmailAddress?.emailAddress ?? 'owner@example.com';
+    const ownerEmail = clerkUser?.primaryEmailAddress?.emailAddress ?? 'owner@example.com';
 
     try {
       const response = await fetch(`${API_BASE}/public/onboarding`, {
@@ -36,7 +43,7 @@ export function OnboardingPage() {
           slug,
           ownerExternalId,
           ownerEmail,
-          ownerDisplayName: user?.fullName ?? undefined,
+          ownerDisplayName: clerkUser?.fullName ?? undefined,
         }),
       });
 
@@ -92,4 +99,11 @@ export function OnboardingPage() {
       </div>
     </div>
   );
+}
+
+export function OnboardingPage() {
+  if (isClerkEnabled()) {
+    return <ClerkOnboardingForm />;
+  }
+  return <OnboardingForm clerkUser={null} />;
 }

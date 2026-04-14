@@ -1,15 +1,13 @@
-import { useAuth } from '@clerk/clerk-react';
 import { Navigate } from 'react-router-dom';
 import { ReactNode } from 'react';
+import { isClerkEnabled, useAppAuth } from './AuthProvider';
 
 export function ProtectedRoute({ children }: { children: ReactNode }) {
-  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
-
-  if (!publishableKey) {
+  if (!isClerkEnabled()) {
     return <>{children}</>;
   }
 
-  const { isLoaded, isSignedIn } = useAuth();
+  const { isLoaded, isSignedIn } = useAppAuth();
 
   if (!isLoaded) {
     return <p>Loading session…</p>;
