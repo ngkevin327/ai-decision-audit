@@ -40,6 +40,29 @@ Runs API, worker, and web. If port **3000** is taken locally, the default API po
 
 Copy `apps/web/.env.example` → `apps/web/.env.local` (bootstrap also writes `VITE_DEFAULT_ORG_ID`).
 
+### Clerk sign-in (full auth flow on local)
+
+1. Create a free app at [Clerk Dashboard](https://dashboard.clerk.com).
+2. Set in root `.env` (same pair for API + web):
+
+   ```env
+   CLERK_PUBLISHABLE_KEY=pk_test_...
+   CLERK_SECRET_KEY=sk_test_...
+   ```
+
+3. Re-run bootstrap so web picks up the publishable key and `LOCAL_DEV_ORG_ID`:
+
+   ```bash
+   pnpm bootstrap:local
+   ```
+
+4. Ensure `apps/web/.env.local` includes `VITE_CLERK_PUBLISHABLE_KEY` (bootstrap copies it when present in `.env`).
+5. Restart `pnpm dev`, open the web URL Vite prints (often http://localhost:5173).
+6. Sign in at `/sign-in` — the app calls `POST /public/auth/session` to link your Clerk user to the local dev org.
+7. Select the **Default Project** in the header and browse traces (run `pnpm seed:demo` if empty).
+
+Without Clerk keys, the UI still runs in **dev bypass** mode (no sign-in, header-based API auth).
+
 ## 3. Verify working product
 
 ```bash
@@ -83,15 +106,15 @@ Set by `pnpm bootstrap:local`:
 
 ### Optional (local)
 
-| Variable                                     | Purpose                                           |
-| -------------------------------------------- | ------------------------------------------------- |
-| `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Real sign-in (API)                                |
-| `VITE_CLERK_PUBLISHABLE_KEY`                 | Clerk in web (omit to use dev mode without login) |
-| `VITE_API_BASE_URL`                          | Web → API (default http://localhost:3100)         |
-| `VITE_DEFAULT_ORG_ID`                        | Trace explorer without Clerk                      |
-| `VITE_DEV_USER_ID`                           | Dev user id for API calls from web                |
-| `SENDGRID_API_KEY`                           | Export/quota emails (skipped if unset)            |
-| `SENDGRID_FROM_EMAIL`                        | Sender address                                    |
+| Variable                                     | Purpose                                              |
+| -------------------------------------------- | ---------------------------------------------------- |
+| `CLERK_PUBLISHABLE_KEY` / `CLERK_SECRET_KEY` | Clerk JWT verification on API (pair from dashboard)  |
+| `VITE_CLERK_PUBLISHABLE_KEY`                 | Clerk sign-in UI (omit for dev bypass without login) |
+| `VITE_API_BASE_URL`                          | Web → API (default http://localhost:3100)            |
+| `VITE_DEFAULT_ORG_ID`                        | Trace explorer without Clerk                         |
+| `VITE_DEV_USER_ID`                           | Dev user id for API calls from web                   |
+| `SENDGRID_API_KEY`                           | Export/quota emails (skipped if unset)               |
+| `SENDGRID_FROM_EMAIL`                        | Sender address                                       |
 
 ### Required (staging / production only)
 

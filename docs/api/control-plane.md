@@ -6,12 +6,16 @@ Base URL: `http://localhost:3000` (local)
 
 ### Browser session (Clerk)
 
-The web UI forwards Clerk session identity via headers during MVP integration:
+When `CLERK_SECRET_KEY` is set on the API, the web sends a verified Clerk session token:
 
-| Header              | Description                               |
-| ------------------- | ----------------------------------------- |
-| `X-User-Id`         | Clerk user ID (`external_id` in database) |
-| `X-Organization-Id` | Active organization UUID                  |
+| Header              | Description                    |
+| ------------------- | ------------------------------ |
+| `Authorization`     | `Bearer <clerk_session_token>` |
+| `X-Organization-Id` | Active organization UUID       |
+
+Link a Clerk user to the local org (development): `POST /public/auth/session` with the Bearer token.
+
+Without Clerk on the API, dev mode accepts `X-User-Id` + `X-Organization-Id` instead.
 
 ### Machine ingest (API keys)
 

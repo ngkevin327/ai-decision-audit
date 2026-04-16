@@ -159,10 +159,13 @@ async function main() {
   }
 
   const webEnvPath = join(root, 'apps', 'web', '.env.local');
+  const rootEnv = existsSync(envPath) ? readFileSync(envPath, 'utf8') : '';
+  const clerkPublishable = rootEnv.match(/^CLERK_PUBLISHABLE_KEY=(.+)$/m)?.[1]?.trim();
   const webLines = [
-    'VITE_API_BASE_URL=http://localhost:3000',
+    'VITE_API_BASE_URL=http://localhost:3100',
     `VITE_DEFAULT_ORG_ID=${organization.id}`,
     'VITE_DEV_USER_ID=local_dev_user',
+    ...(clerkPublishable ? [`VITE_CLERK_PUBLISHABLE_KEY=${clerkPublishable}`] : []),
   ];
   const webContent = existsSync(webEnvPath) ? readFileSync(webEnvPath, 'utf8') : '';
   const webToWrite = webLines.filter((l) => !webContent.includes(l.split('=')[0] + '='));
