@@ -10,7 +10,10 @@ export interface AppAuthValue {
 
 const AppAuthContext = createContext<AppAuthValue | null>(null);
 
-const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+const publishableKey =
+  import.meta.env.VITE_CLERK_PUBLISHABLE_KEY?.trim() ||
+  (import.meta.env as { CLERK_PUBLISHABLE_KEY?: string }).CLERK_PUBLISHABLE_KEY?.trim() ||
+  '';
 const devUserId = import.meta.env.VITE_DEV_USER_ID ?? 'dev_user';
 
 const devAuthValue: AppAuthValue = {
@@ -39,7 +42,13 @@ export function AuthProvider({ children }: { children: ReactNode }) {
   }
 
   return (
-    <ClerkProvider publishableKey={publishableKey}>
+    <ClerkProvider
+      publishableKey={publishableKey}
+      signInUrl="/sign-in"
+      signUpUrl="/sign-in"
+      afterSignInUrl="/"
+      afterSignUpUrl="/onboarding"
+    >
       <ClerkAuthBridge>{children}</ClerkAuthBridge>
     </ClerkProvider>
   );
@@ -54,5 +63,5 @@ export function useAppAuth(): AppAuthValue {
 }
 
 export function isClerkEnabled() {
-  return Boolean(publishableKey);
+  return publishableKey.length > 0;
 }

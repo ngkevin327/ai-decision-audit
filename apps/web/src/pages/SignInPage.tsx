@@ -1,13 +1,31 @@
 import { SignIn } from '@clerk/clerk-react';
 import { ArrowRight, Shield } from 'lucide-react';
-import { Link } from 'react-router-dom';
+import { Navigate, useNavigate } from 'react-router-dom';
+import { isClerkEnabled, useAppAuth } from '../auth/AuthProvider';
+import { setDevConsoleEntry } from '../auth/dev-entry';
 import { Logo } from '../components/brand/Logo';
 import { ThemeToggle } from '../components/ThemeToggle';
+import { LoadingState } from '../components/LoadingState';
 
 export function SignInPage() {
-  const publishableKey = import.meta.env.VITE_CLERK_PUBLISHABLE_KEY;
+  const navigate = useNavigate();
+  const clerkEnabled = isClerkEnabled();
+  const { isLoaded, isSignedIn } = useAppAuth();
 
-  if (!publishableKey) {
+  if (clerkEnabled) {
+    if (!isLoaded) {
+      return (
+        <div className="flex min-h-screen items-center justify-center bg-mesh-gradient">
+          <LoadingState label="Loading sign-in" />
+        </div>
+      );
+    }
+    if (isSignedIn) {
+      return <Navigate to="/" replace />;
+    }
+  }
+
+  if (!clerkEnabled) {
     return (
       <div className="flex min-h-screen">
         <div className="hidden w-1/2 flex-col justify-between bg-sidebar p-12 lg:flex">
@@ -51,19 +69,22 @@ export function SignInPage() {
                 Clerk is not configured. Continue to the console without sign-in.
               </p>
             </div>
-            <Link
-              to="/"
+            <button
+              type="button"
+              onClick={() => {
+                setDevConsoleEntry();
+                navigate('/');
+              }}
               className="flex h-11 w-full items-center justify-center gap-2 rounded-lg bg-primary text-sm font-medium text-primary-foreground shadow-md shadow-primary/25 transition hover:bg-primary/90"
             >
               Enter forensic console
               <ArrowRight className="h-4 w-4" aria-hidden />
-            </Link>
+            </button>
             <p className="text-center text-xs text-muted-foreground">
-              Set{' '}
-              <code className="rounded bg-muted px-1 py-0.5 font-mono">
-                VITE_CLERK_PUBLISHABLE_KEY
-              </code>{' '}
-              for production auth.
+              For Clerk sign-in, set{' '}
+              <code className="rounded bg-muted px-1 py-0.5 font-mono">CLERK_PUBLISHABLE_KEY</code>{' '}
+              in the repo root <code className="rounded bg-muted px-1 py-0.5 font-mono">.env</code>{' '}
+              and restart <code className="rounded bg-muted px-1 py-0.5 font-mono">pnpm dev</code>.
             </p>
           </div>
         </div>
@@ -80,7 +101,7 @@ export function SignInPage() {
         <div className="mb-6 flex justify-center">
           <Logo variant="light" />
         </div>
-        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-up" />
+        <SignIn routing="path" path="/sign-in" signUpUrl="/sign-in" fallbackRedirectUrl="/" />
       </div>
     </div>
   );

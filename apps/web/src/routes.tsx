@@ -1,4 +1,5 @@
-import { Route, Routes } from 'react-router-dom';
+import { Navigate, Route, Routes } from 'react-router-dom';
+import { AuthBootstrap } from './auth/AuthBootstrap';
 import { ProtectedRoute } from './auth/ProtectedRoute';
 import { AppLayout } from './layouts/AppLayout';
 import { DashboardPage } from './pages/DashboardPage';
@@ -16,11 +17,14 @@ export function AppRoutes() {
   return (
     <Routes>
       <Route path="/sign-in" element={<SignInPage />} />
+      <Route path="/login" element={<Navigate to="/sign-in" replace />} />
       <Route path="/onboarding" element={<OnboardingPage />} />
       <Route
         element={
           <ProtectedRoute>
-            <AppLayout />
+            <AuthBootstrap>
+              <AppLayout />
+            </AuthBootstrap>
           </ProtectedRoute>
         }
       >
