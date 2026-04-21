@@ -11,11 +11,10 @@ function buildHeaders(options: ApiRequestOptions): HeadersInit {
     'Content-Type': 'application/json',
     'X-Organization-Id': options.orgId,
   };
-  if (options.userId) {
-    headers['X-User-Id'] = options.userId;
-  }
   if (options.token) {
     headers.Authorization = `Bearer ${options.token}`;
+  } else if (options.userId) {
+    headers['X-User-Id'] = options.userId;
   }
   return headers;
 }
