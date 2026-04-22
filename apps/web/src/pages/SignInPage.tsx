@@ -29,7 +29,7 @@ export function SignInPage() {
     return (
       <div className="flex min-h-screen">
         <div className="hidden w-1/2 flex-col justify-between bg-sidebar p-12 lg:flex">
-          <Logo />
+          <Logo size="hero" />
           <div className="space-y-6">
             <h1 className="text-4xl font-semibold leading-tight tracking-tight text-sidebar-foreground">
               Forensic audit trails for production AI
@@ -61,7 +61,7 @@ export function SignInPage() {
           </div>
           <div className="w-full max-w-md space-y-8 rounded-2xl border border-border bg-card p-8 shadow-card-hover">
             <div className="lg:hidden">
-              <Logo variant="light" />
+              <Logo variant="light" size="large" className="justify-center" />
             </div>
             <div className="space-y-2 text-center lg:text-left">
               <h2 className="text-xl font-semibold">Local development</h2>
@@ -98,8 +98,8 @@ export function SignInPage() {
         <ThemeToggle />
       </div>
       <div className="w-full max-w-md rounded-2xl border border-border bg-card p-6 shadow-card-hover">
-        <div className="mb-6 flex justify-center">
-          <Logo variant="light" />
+        <div className="mb-8 flex justify-center">
+          <Logo variant="light" size="large" />
         </div>
         <SignIn routing="path" path="/sign-in" signUpUrl="/sign-in" fallbackRedirectUrl="/" />
       </div>

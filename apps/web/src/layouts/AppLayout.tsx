@@ -27,8 +27,8 @@ export function AppLayout() {
   return (
     <div className="flex min-h-screen bg-background">
       <aside className="flex w-64 shrink-0 flex-col border-r border-sidebar-border bg-sidebar">
-        <div className="border-b border-sidebar-border px-5 py-5">
-          <Logo />
+        <div className="border-b border-sidebar-border px-5 py-6">
+          <Logo size="default" />
         </div>
         <nav className="flex flex-1 flex-col gap-1 p-3" aria-label="Main navigation">
           {navItems.map((item) => (

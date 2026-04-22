@@ -65,7 +65,7 @@ function OnboardingForm({ clerkUser }: { clerkUser: ClerkUser }) {
     <div className="flex min-h-screen items-center justify-center bg-mesh-gradient p-6">
       <div className="w-full max-w-lg space-y-8">
         <div className="text-center">
-          <Logo variant="light" className="justify-center" />
+          <Logo variant="light" size="large" className="justify-center" />
         </div>
         <SettingsCard
           title="Create your organization"
